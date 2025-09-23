@@ -1,0 +1,78 @@
+Server on http://localhost:3000
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Fetching station data from NYC Open Data API...
+API URL: https://data.ny.gov/resource/39hk-dx4f.json?$query=%0A%20%20%20%20%20%20SELECT%20%0A%20%20%20%20%20%20%20%20gtfs_stop_id%2C%0A%20%20%20%20%20%20%20%20station_id%2C%0A%20%20%20%20%20%20%20%20complex_id%2C%0A%20%20%20%20%20%20%20%20division%2C%0A%20%20%20%20%20%20%20%20line%2C%0A%20%20%20%20%20%20%20%20stop_name%2C%0A%20%20%20%20%20%20%20%20borough%2C%0A%20%20%20%20%20%20%20%20cbd%2C%0A%20%20%20%20%20%20%20%20daytime_routes%2C%0A%20%20%20%20%20%20%20%20structure%2C%0A%20%20%20%20%20%20%20%20gtfs_latitude%2C%0A%20%20%20%20%20%20%20%20gtfs_longitude%2C%0A%20%20%20%20%20%20%20%20north_direction_label%2C%0A%20%20%20%20%20%20%20%20south_direction_label%2C%0A%20%20%20%20%20%20%20%20ada%2C%0A%20%20%20%20%20%20%20%20ada_northbound%2C%0A%20%20%20%20%20%20%20%20ada_southbound%2C%0A%20%20%20%20%20%20%20%20ada_notes%2C%0A%20%20%20%20%20%20%20%20georeference%0A%20%20%20%20%20%20ORDER%20BY%20station_id%20ASC%20NULL%20LAST%0A%20%20%20%20
+Received 496 stations from NYC Open Data API
+Successfully cached 496 stations from NYC Open Data API
+Found 403 arrivals for G line
+Available routes in feed: G
+Fetching 1 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs
+Found 999 arrivals for 1 line
+Available routes in feed: 2, 1, 3, 4, 5, 6X, 6, 7X, 7, GS
+Fetching 2 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs
+Found 884 arrivals for 2 line
+Available routes in feed: 2, 1, 3, 4, 5, 6X, 6, 7X, 7, GS
+Fetching 3 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs
+Found 489 arrivals for 3 line
+Available routes in feed: 2, 1, 3, 4, 5, 6X, 6, 7X, 7, GS
+Fetching 4 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs
+Found 450 arrivals for 4 line
+Available routes in feed: 2, 1, 3, 4, 5, 6X, 6, 7X, 7, GS
+Fetching 5 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs
+Found 325 arrivals for 5 line
+Available routes in feed: 2, 1, 3, 4, 5, 6X, 6, 7X, 7, GS
+Fetching 6 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs
+Found 748 arrivals for 6 line
+Available routes in feed: 2, 1, 3, 4, 5, 6X, 6, 7X, 7, GS
+Fetching 7 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs
+Found 412 arrivals for 7 line
+Available routes in feed: 2, 1, 3, 4, 5, 6X, 6, 7X, 7, GS
+Fetching A line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace
+Found 793 arrivals for A line
+Available routes in feed: A, C, E, H
+Fetching B line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm
+Found 506 arrivals for B line
+Available routes in feed: B, D, F, M, FS
+Fetching C line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace
+Found 755 arrivals for C line
+Available routes in feed: A, C, E, H
+Fetching D line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm
+Found 830 arrivals for D line
+Available routes in feed: B, D, F, M, FS
+Fetching E line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace
+Found 760 arrivals for E line
+Available routes in feed: A, C, E, H
+Fetching F line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm
+Found 1598 arrivals for F line
+Available routes in feed: B, D, F, M, FS
+Fetching J line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-jz
+Found 544 arrivals for J line
+Available routes in feed: J
+Fetching L line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-l
+Found 582 arrivals for L line
+Available routes in feed: L
+Fetching M line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm
+Found 275 arrivals for M line
+Available routes in feed: B, D, F, M, FS
+Fetching N line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw
+Found 595 arrivals for N line
+Available routes in feed: N, W, Q, R
+Fetching Q line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw
+Found 699 arrivals for Q line
+Available routes in feed: N, W, Q, R
+Fetching R line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw
+Found 801 arrivals for R line
+Available routes in feed: N, W, Q, R
+Fetching W line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw
+Found 419 arrivals for W line
+Available routes in feed: N, W, Q, R
+Found stations: from="Times Sq-42 St", to="14 St-Union Sq"
+From station lines: S
+To station lines: 4, 5, 6
+Available route data keys: 1, 2, 3, 4, 5, 6, 7, G, A, B, C, D, E, F, J, L, M, N, Q, R, W
+Common lines: 
+Total routes found so far: 0
+No real-time routes found, generating fallback routes
+Fallback common lines: 
+Fallback transfer station: none for S -> 4
+No fallback routes found, returning empty routes array

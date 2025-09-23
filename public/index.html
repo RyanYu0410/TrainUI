@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MTA Live Arrivals</title>
+    <link rel="stylesheet" href="arrivals.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">MTA Live Arrivals</h1>
+            <p class="subtitle">Real-time subway arrivals</p>
+        </header>
+
+        <main class="arrivals-section">
+            <div class="train-selector">
+                <label for="trainLine" class="selector-label">Select Train Line</label>
+                <select id="trainLine" class="train-select">
+                    <option value="G">🟢 G Line (Brooklyn-Queens Crosstown)</option>
+                    <option value="1">🔴 1 Line (Broadway-7th Avenue Local)</option>
+                    <option value="2">🔴 2 Line (Broadway-7th Avenue Express)</option>
+                    <option value="3">🔴 3 Line (Broadway-7th Avenue Express)</option>
+                    <option value="4">🟢 4 Line (Lexington Avenue Express)</option>
+                    <option value="5">🟢 5 Line (Lexington Avenue Express)</option>
+                    <option value="6">🟢 6 Line (Lexington Avenue Local)</option>
+                    <option value="7">🟣 7 Line (Flushing Local/Express)</option>
+                    <option value="A">🔵 A Line (8th Avenue Express)</option>
+                    <option value="B">🟠 B Line (6th Avenue Express)</option>
+                    <option value="C">🔵 C Line (8th Avenue Local)</option>
+                    <option value="D">🟠 D Line (6th Avenue Express)</option>
+                    <option value="E">🔵 E Line (8th Avenue Local)</option>
+                    <option value="F">🟠 F Line (6th Avenue Local)</option>
+                    <option value="J">🟤 J Line (Nassau Street Express)</option>
+                    <option value="L">🔘 L Line (14th Street-Canarsie Local)</option>
+                    <option value="M">🟠 M Line (6th Avenue Local)</option>
+                    <option value="Z">🟤 Z Line (Nassau Street Express)</option>
+                    <option value="N">🟡 N Line (Broadway Express)</option>
+                    <option value="Q">🟡 Q Line (Broadway Express)</option>
+                    <option value="R">🟡 R Line (Broadway Local)</option>
+                    <option value="W">🟡 W Line (Broadway Local)</option>
+                </select>
+            </div>
+
+            <div class="controls">
+                <div class="filter-group">
+                    <label for="stopFilter" class="filter-label">Filter Stations</label>
+                    <input id="stopFilter" class="filter-input" placeholder="Search by station name, stop ID, or destination..." />
+                </div>
+                <button id="refreshBtn" class="refresh-button">
+                    <div class="refresh-icon">🔄</div>
+                    <span>Refresh</span>
+                </button>
+            </div>
+
+            <div class="status-bar">
+                <span id="updated" class="update-time"></span>
+                <span id="summary" class="arrival-count"></span>
+            </div>
+
+            <div class="arrivals-container">
+                <table id="arrivalsTable" class="arrivals-table">
+                    <thead>
+                        <tr>
+                            <th>Route</th>
+                            <th>Station</th>
+                            <th>Stop ID</th>
+                            <th>Direction</th>
+                            <th>Destination</th>
+                            <th>Arrival</th>
+                            <th>Departure</th>
+                        </tr>
+                    </thead>
+                    <tbody id="arrivalsBody"></tbody>
+                </table>
+            </div>
+        </main>
+
+        <div class="quick-links">
+            <a href="/home" class="quick-link">← Station Finder & Route Planning</a>
+        </div>
+    </div>
+
+    <script src="arrivals.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train Details - MTA G-Site</title>
+    <link rel="stylesheet" href="train-details.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Current Station Name Section -->
+        <div class="current-station-section">
+            <h2 class="section-title" id="currentStationTitle">Current Station Name</h2>
+            <div class="station-header">
+                <div class="station-info">
+                    <div class="station-name" id="stationName">Loading...</div>
+                    <div class="station-details" id="stationDetails">
+                        <span class="borough" id="borough">-</span>
+                        <span class="accessibility" id="accessibility">-</span>
+                    </div>
+                </div>
+                <div class="line-badges" id="lineBadges">
+                    <!-- Line badges will be populated here -->
+                </div>
+            </div>
+            <div class="route-map" id="routeMap">
+                <!-- Route map will be populated here -->
+            </div>
+        </div>
+
+        <!-- Train Arrival Section -->
+        <div class="train-arrival-section">
+            <h2 class="section-title">Train Arrival</h2>
+            <div class="arrival-info">
+                <div class="arrival-time" id="arrivalTime">Loading arrivals...</div>
+                <div class="arrival-details" id="arrivalDetails">
+                    <div class="destination" id="destination">-</div>
+                    <div class="train-length" id="trainLength">-</div>
+                </div>
+                <div class="train-cars" id="trainCars">
+                    <!-- Train cars will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Service Status Section -->
+        <div class="service-status-section">
+            <h2 class="section-title">Service Status</h2>
+            <div class="status-info">
+                <div class="status-text" id="statusText">Loading service status...</div>
+                <div class="status-details" id="statusDetails">-</div>
+                <div class="status-legend">
+                    <div class="legend-item">
+                        <div class="legend-circle green"></div>
+                        <span>Good Service</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-circle yellow"></div>
+                        <span>Delays</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-circle red"></div>
+                        <span>Major Issues</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Crowd Information Section -->
+        <div class="crowd-section">
+            <h2 class="section-title">Crowd Information</h2>
+            <div class="crowd-info">
+                <div class="crowd-level" id="crowdLevel">Loading...</div>
+                <div class="crowd-indicator">
+                    <div class="crowd-bar" id="crowdBar"></div>
+                </div>
+                <div class="crowd-tip" id="crowdTip">-</div>
+            </div>
+        </div>
+
+        <!-- Train Line Information Section -->
+        <div class="line-info-section">
+            <h2 class="section-title">Train Line Information</h2>
+            <div class="line-info">
+                <div class="line-overview" id="lineOverview">
+                    <div class="line-badge-large" id="lineBadgeLarge">-</div>
+                    <div class="line-details">
+                        <div class="line-title" id="lineTitle">-</div>
+                        <div class="line-description" id="lineDescription">-</div>
+                    </div>
+                </div>
+                <div class="line-stats" id="lineStats">
+                    <!-- Line statistics will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <button class="back-btn" onclick="goBack()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Back
+        </button>
+    </div>
+
+    <script src="train-details.js"></script>
+</body>
+</html>
