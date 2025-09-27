@@ -34,6 +34,7 @@ class ArrivalsApp {
             trainSelect: document.getElementById('trainLine'),
             filterInput: document.getElementById('stopFilter'),
             refreshBtn: document.getElementById('refreshBtn'),
+            detailsBtn: document.getElementById('detailsBtn'),
             updateTime: document.getElementById('updated'),
             summary: document.getElementById('summary'),
             tableBody: document.getElementById('arrivalsBody')
@@ -61,6 +62,28 @@ class ArrivalsApp {
         this.elements.refreshBtn.addEventListener('click', () => {
             this.loadArrivals();
         });
+
+        if (this.elements.detailsBtn) {
+            this.elements.detailsBtn.addEventListener('click', () => {
+                const line = this.currentLine || 'G';
+                // Try to grab the first visible station from the table
+                let station = '';
+                const firstRow = this.elements.tableBody?.querySelector('tr');
+                if (firstRow) {
+                    const stationCell = firstRow.querySelector('.station-name');
+                    if (stationCell && stationCell.textContent) {
+                        station = stationCell.textContent.trim();
+                    }
+                }
+                const params = new URLSearchParams();
+                if (station) {
+                    params.set('from', station);
+                    params.set('to', station);
+                }
+                params.set('line', line);
+                window.location.href = `/train-details?${params.toString()}`;
+            });
+        }
 
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
