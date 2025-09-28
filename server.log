@@ -76,3 +76,371 @@ No real-time routes found, generating fallback routes
 Fallback common lines: 
 Fallback transfer station: none for S -> 4
 No fallback routes found, returning empty routes array
+
+> mta-g-site@1.0.0 start
+> node server.js
+
+Server on http://localhost:3000
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 172 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 172 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 171 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 171 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 169 arrivals for G line
+Available routes in feed: G
+Fetching A line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace
+Found 717 arrivals for A line
+Available routes in feed: A, E, H
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 169 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 169 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 168 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 168 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 167 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 167 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 165 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 165 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 165 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 165 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 163 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 163 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 162 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 162 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 161 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 161 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 160 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 160 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 160 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 160 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 158 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 158 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 157 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 157 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 157 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 157 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 155 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 155 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 155 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 155 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 176 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 176 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 175 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 175 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 173 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 173 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 173 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 173 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 171 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 171 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 169 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 169 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 168 arrivals for G line
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Found 168 arrivals for G line
+Available routes in feed: G
+
+> mta-g-site@1.0.0 start
+> node server.js
+
+Server on http://localhost:3000
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 167 valid arrivals for G line (6s old)
+Available routes in feed: G
+Using cached data for G line (25s remaining)
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 164 valid arrivals for G line (6s old)
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 164 valid arrivals for G line (7s old)
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 163 valid arrivals for G line (0s old)
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 160 valid arrivals for G line (1s old)
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 160 valid arrivals for G line (1s old)
+Available routes in feed: G
+Using cached data for G line (0s remaining)
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 157 valid arrivals for G line (1s old)
+Available routes in feed: G
+Using cached data for G line (0s remaining)
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 156 valid arrivals for G line (4s old)
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 175 valid arrivals for G line (4s old)
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 174 valid arrivals for G line (8s old)
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 171 valid arrivals for G line (6s old)
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 170 valid arrivals for G line (5s old)
+Available routes in feed: G
+Using cached data for G line (0s remaining)
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 168 valid arrivals for G line (5s old)
+Available routes in feed: G
+Using cached data for G line (0s remaining)
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 166 valid arrivals for G line (5s old)
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 164 valid arrivals for G line (5s old)
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 162 valid arrivals for G line (5s old)
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 161 valid arrivals for G line (6s old)
+Available routes in feed: G
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 159 valid arrivals for G line (6s old)
+Available routes in feed: G
+Fetching 1 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 250 valid arrivals for 1 line (4s old)
+Available routes in feed: 1, 2, 3, 4, 5, 6, 7
+Fetching 2 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 476 valid arrivals for 2 line (4s old)
+Available routes in feed: 1, 2, 3, 4, 5, 6, 7
+Fetching 3 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 45 valid arrivals for 3 line (4s old)
+Available routes in feed: 1, 2, 3, 4, 5, 6, 7
+Fetching 4 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 234 valid arrivals for 4 line (4s old)
+Available routes in feed: 1, 2, 3, 4, 5, 6, 7
+Fetching 5 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 20 valid arrivals for 5 line (4s old)
+Available routes in feed: 1, 2, 3, 4, 5, 6, 7
+Fetching 6 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 253 valid arrivals for 6 line (5s old)
+Available routes in feed: 1, 2, 3, 4, 5, 6, 7
+Fetching 7 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 117 valid arrivals for 7 line (5s old)
+Available routes in feed: 1, 2, 3, 4, 5, 6, 7
+Fetching A line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 645 valid arrivals for A line (2s old)
+Available routes in feed: A, E, H
+Fetching B line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 0 valid arrivals for B line (14s old)
+Available routes in feed: D, F, M, FS
+Fetching C line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 0 valid arrivals for C line (2s old)
+Available routes in feed: A, E, H
+Fetching D line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 412 valid arrivals for D line (14s old)
+Available routes in feed: D, F, M, FS
+Fetching E line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 295 valid arrivals for E line (2s old)
+Available routes in feed: A, E, H
+Fetching F line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 626 valid arrivals for F line (14s old)
+Available routes in feed: D, F, M, FS
+Fetching J line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-jz (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 256 valid arrivals for J line (1s old)
+Available routes in feed: J
+Fetching L line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-l (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 126 valid arrivals for L line (6s old)
+Available routes in feed: L
+Fetching M line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 55 valid arrivals for M line (14s old)
+Available routes in feed: D, F, M, FS
+Fetching N line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 418 valid arrivals for N line (10s old)
+Available routes in feed: N, Q, R
+Fetching Q line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 326 valid arrivals for Q line (10s old)
+Available routes in feed: N, Q, R
+Fetching R line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 33 valid arrivals for R line (10s old)
+Available routes in feed: N, Q, R
+Fetching W line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 0 valid arrivals for W line (10s old)
+Available routes in feed: N, Q, R
+Found stations: from="7th Avenue", to="Broadway"
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 173 valid arrivals for G line (8s old)
+Available routes in feed: G
+Using cached data for G line (26s remaining)
+Using cached data for G line (20s remaining)
+Fetching 5 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 28 valid arrivals for 5 line (3s old)
+Available routes in feed: 1, 2, 3, 4, 5, 6, 7
+Using cached data for 5 line (29s remaining)
+Using cached data for 5 line (4s remaining)
+Fetching 5 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 28 valid arrivals for 5 line (5s old)
+Available routes in feed: 1, 2, 3, 4, 5, 6, 7
+Fetching 5 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 28 valid arrivals for 5 line (5s old)
+Available routes in feed: 1, 2, 3, 4, 5, 6, 7
+Using cached data for 5 line (0s remaining)
+Fetching 5 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 26 valid arrivals for 5 line (5s old)
+Available routes in feed: 1, 2, 3, 4, 5, 6, 7
+Cleaned up stale cache entry: G_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Cleaned up stale cache entry: 1_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs
+Cleaned up stale cache entry: 2_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs
+Cleaned up stale cache entry: 3_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs
+Cleaned up stale cache entry: 4_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs
+Cleaned up stale cache entry: 6_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs
+Cleaned up stale cache entry: 7_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs
+Cleaned up stale cache entry: A_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace
+Cleaned up stale cache entry: B_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm
+Cleaned up stale cache entry: C_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace
+Cleaned up stale cache entry: D_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm
+Cleaned up stale cache entry: E_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace
+Cleaned up stale cache entry: F_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm
+Cleaned up stale cache entry: J_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-jz
+Cleaned up stale cache entry: L_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-l
+Cleaned up stale cache entry: M_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm
+Cleaned up stale cache entry: N_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw
+Cleaned up stale cache entry: Q_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw
+Cleaned up stale cache entry: R_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw
+Cleaned up stale cache entry: W_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw
+Fetching 5 line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 26 valid arrivals for 5 line (5s old)
+Available routes in feed: 1, 2, 3, 4, 5, 6, 7
+Using cached data for 5 line (0s remaining)

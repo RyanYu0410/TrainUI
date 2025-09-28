@@ -21,6 +21,11 @@ app.get("/home", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "home.html"));
 });
 
+// Route for train details page
+app.get("/train-details", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "train-details.html"));
+});
+
 // Route for route results page
 
 // Route for G train arrivals (original functionality)
@@ -1181,18 +1186,56 @@ const ALL_STATION_NAMES = {
   "J45": "Broad St"
 };
 
-// Generic function to fetch arrivals for any train line
-async function fetchArrivalsForLine(lineId, feedUrl) {
+// Enhanced real-time data cache with freshness validation
+const dataCache = new Map();
+const CACHE_DURATION = 30 * 1000; // 30 seconds
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
+// Data quality validation
+function validateArrivalData(arrival) {
+  const now = Math.floor(Date.now() / 1000);
+  const maxFutureTime = now + (2 * 60 * 60); // 2 hours max future
+  const minPastTime = now - (30 * 60); // 30 minutes max past
+  
+  return arrival.epoch >= minPastTime && 
+         arrival.epoch <= maxFutureTime &&
+         arrival.stationName && 
+         arrival.stationName !== 'Unknown Station' &&
+         arrival.routeId;
+}
+
+// Enhanced fetch with retry logic and caching
+async function fetchArrivalsForLine(lineId, feedUrl, retryCount = 0) {
+  const cacheKey = `${lineId}_${feedUrl}`;
+  const now = Date.now();
+  
+  // Check cache first
+  if (dataCache.has(cacheKey)) {
+    const cached = dataCache.get(cacheKey);
+    if (now - cached.timestamp < CACHE_DURATION) {
+      console.log(`Using cached data for ${lineId} line (${Math.round((CACHE_DURATION - (now - cached.timestamp)) / 1000)}s remaining)`);
+      return cached.data;
+    }
+  }
+
   try {
-    console.log(`Fetching ${lineId} line from ${feedUrl}`);
+    console.log(`Fetching ${lineId} line from ${feedUrl} (attempt ${retryCount + 1})`);
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
     
     const response = await fetch(feedUrl, {
       headers: { 
         "x-api-key": process.env.MTA_API_KEY,
-        "User-Agent": "MTA-G-Site/1.0"
+        "User-Agent": "MTA-G-Site/2.0",
+        "Accept": "application/x-protobuf",
+        "Cache-Control": "no-cache"
       },
-      timeout: 10000
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const text = await response.text().catch(() => "");
@@ -1205,6 +1248,13 @@ async function fetchArrivalsForLine(lineId, feedUrl) {
       throw new Error("Empty response from MTA API");
     }
 
+    // Check data freshness from headers
+    const lastModified = response.headers.get('last-modified');
+    const cacheControl = response.headers.get('cache-control');
+    const dataAge = response.headers.get('age');
+    
+    console.log(`Data freshness - Last-Modified: ${lastModified}, Age: ${dataAge}s, Cache-Control: ${cacheControl}`);
+
     let feed;
     try {
       feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
@@ -1215,22 +1265,38 @@ async function fetchArrivalsForLine(lineId, feedUrl) {
       throw new Error(`Invalid data format from MTA API: ${decodeError.message}`);
     }
 
+    // Validate feed header
+    if (!feed.header) {
+      throw new Error("Invalid feed: missing header");
+    }
+
+    const feedTimestamp = feed.header.timestamp?.toNumber?.() || feed.header.timestamp;
+    const feedAge = now / 1000 - feedTimestamp;
+    
+    if (feedAge > 300) { // 5 minutes max age
+      console.warn(`Feed data is ${Math.round(feedAge)}s old for ${lineId} line`);
+    }
+
     const arrivals = [];
-    const now = Math.floor(Date.now() / 1000);
+    const now_epoch = Math.floor(Date.now() / 1000);
     const availableRoutes = new Set();
+    const processedTrips = new Set();
 
     for (const entity of feed.entity || []) {
       if (!entity.tripUpdate) continue;
 
       const routeId = entity.tripUpdate.trip?.routeId || lineId;
+      const tripId = entity.tripUpdate.trip?.tripId;
+      
+      // Skip duplicate trips
+      if (tripId && processedTrips.has(tripId)) continue;
+      if (tripId) processedTrips.add(tripId);
+      
       availableRoutes.add(routeId);
       
-      // Filter by route - be more precise with matching
+      // Enhanced route filtering
       if (lineId !== 'G' && lineId !== 'L') {
-        // For combined feeds, check if route exactly matches
-        if (routeId !== lineId) {
-          continue;
-        }
+        if (routeId !== lineId) continue;
       }
 
       for (const stu of entity.tripUpdate.stopTimeUpdate || []) {
@@ -1242,102 +1308,232 @@ async function fetchArrivalsForLine(lineId, feedUrl) {
         const departure = stu.departure?.time?.toNumber?.() || stu.departure?.time || null;
 
         const t = arrival || departure;
-        if (!t || t < now - 60) continue;
+        if (!t || t < now_epoch - 60) continue; // Skip arrivals more than 1 minute past
 
-        // Get station name with better fallback
+        // Enhanced station name resolution
         const baseStopId = stopId.replace(/[NSEW]$/, "");
-        const stationName = ALL_STATION_NAMES[baseStopId] || 
-                           ALL_STATION_NAMES[stopId] || 
-                           `Station ${baseStopId}`;
+        let stationName = ALL_STATION_NAMES[baseStopId] || 
+                         ALL_STATION_NAMES[stopId] || 
+                         `Station ${baseStopId}`;
         
-        // Better destination logic
+        // Clean up station names
+        stationName = stationName.replace(/\s+/g, ' ').trim();
+        
+        // Enhanced destination logic
         let destination = "Unknown";
-        if (dir === "N") destination = "Northbound";
+        const tripHeadsign = entity.tripUpdate.trip?.tripHeadsign;
+        if (tripHeadsign) {
+          destination = tripHeadsign;
+        } else if (dir === "N") destination = "Northbound";
         else if (dir === "S") destination = "Southbound";
         else if (dir === "E") destination = "Eastbound";
         else if (dir === "W") destination = "Westbound";
         
-        arrivals.push({
+        const arrivalData = {
           routeId,
-          tripId: entity.tripUpdate.trip?.tripId || "",
+          tripId: tripId || "",
           stopId,
           stationName,
           direction: dir,
           destination,
           arrivalTime: arrival ? formatArrivalTime(arrival) : null,
           departureTime: departure ? formatArrivalTime(departure) : null,
-          epoch: t
-        });
+          epoch: t,
+          feedTimestamp: feedTimestamp,
+          dataQuality: 'realtime'
+        };
+
+        // Validate data quality
+        if (validateArrivalData(arrivalData)) {
+          arrivals.push(arrivalData);
+        }
       }
     }
 
+    // Sort by arrival time and remove duplicates
     arrivals.sort((a, b) => a.epoch - b.epoch);
+    
+    // Remove duplicate arrivals (same trip, same stop)
+    const uniqueArrivals = [];
+    const seen = new Set();
+    for (const arrival of arrivals) {
+      const key = `${arrival.tripId}_${arrival.stopId}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueArrivals.push(arrival);
+      }
+    }
 
-    console.log(`Found ${arrivals.length} arrivals for ${lineId} line`);
+    const result = {
+      updated: new Date().toLocaleString(),
+      count: uniqueArrivals.length,
+      arrivals: uniqueArrivals.slice(0, 150), // Increased limit
+      availableRoutes: Array.from(availableRoutes),
+      feedTimestamp: feedTimestamp,
+      dataAge: Math.round(feedAge),
+      dataQuality: 'realtime',
+      cacheExpiry: now + CACHE_DURATION
+    };
+
+    // Cache the result
+    dataCache.set(cacheKey, {
+      data: result,
+      timestamp: now
+    });
+
+    console.log(`Found ${uniqueArrivals.length} valid arrivals for ${lineId} line (${Math.round(feedAge)}s old)`);
     console.log(`Available routes in feed: ${Array.from(availableRoutes).join(', ')}`);
 
-    return {
-      updated: new Date().toLocaleString(),
-      count: arrivals.length,
-      arrivals: arrivals.slice(0, 100), // Limit to 100 most recent arrivals
-      availableRoutes: Array.from(availableRoutes)
-    };
-  } catch (error) {
-    console.error(`Error fetching ${lineId} line arrivals:`, error);
+    return result;
     
-    // Return a more user-friendly error
+  } catch (error) {
+    console.error(`Error fetching ${lineId} line arrivals (attempt ${retryCount + 1}):`, error);
+    
+    // Retry logic for transient errors
+    if (retryCount < MAX_RETRIES && (
+      error.name === 'AbortError' || 
+      error.message.includes('timeout') ||
+      error.message.includes('ECONNRESET') ||
+      error.message.includes('ENOTFOUND')
+    )) {
+      console.log(`Retrying ${lineId} line fetch in ${RETRY_DELAY}ms...`);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)));
+      return fetchArrivalsForLine(lineId, feedUrl, retryCount + 1);
+    }
+    
+    // Return cached data if available and recent
+    if (dataCache.has(cacheKey)) {
+      const cached = dataCache.get(cacheKey);
+      if (now - cached.timestamp < CACHE_DURATION * 2) { // Allow stale cache for 1 minute
+        console.log(`Using stale cached data for ${lineId} line due to fetch error`);
+        return {
+          ...cached.data,
+          dataQuality: 'stale',
+          error: error.message
+        };
+      }
+    }
+    
+    // Enhanced error messages
     if (error.message.includes('invalid wire type')) {
       throw new Error(`Data format error for ${lineId} line. This feed may be temporarily unavailable.`);
     } else if (error.message.includes('401') || error.message.includes('403')) {
       throw new Error(`Authentication error. Please check your MTA API key.`);
     } else if (error.message.includes('404')) {
       throw new Error(`Feed not found for ${lineId} line. This line may not be available.`);
+    } else if (error.name === 'AbortError') {
+      throw new Error(`Request timeout for ${lineId} line. The MTA API may be slow.`);
     } else {
       throw new Error(`Failed to fetch ${lineId} line data: ${error.message}`);
     }
   }
 }
 
-// Demo data for when feeds are unavailable
+// Enhanced demo data with realistic station names
 function generateDemoData(lineId) {
   const now = new Date();
   const demoArrivals = [];
   
-  // Generate 5-10 demo arrivals
-  const numArrivals = Math.floor(Math.random() * 6) + 5;
+  // Realistic station names for demo data
+  const demoStations = {
+    'G': ['Court Square', '21st Street', 'Greenpoint Avenue', 'Nassau Avenue', 'Metropolitan Avenue', 'Broadway', 'Flushing Avenue', 'Myrtle–Willoughby Avenues', 'Bedford–Nostrand Avenues', 'Classon Avenue', 'Clinton–Washington Avenues', 'Fulton Street', 'Hoyt–Schermerhorn Streets', 'Bergen Street', 'Carroll Street', 'Smith–9th Streets', '4th Avenue–9th Street', '7th Avenue', '15th Street–Prospect Park', 'Fort Hamilton Parkway', 'Church Avenue'],
+    'A': ['Inwood-207th St', 'Dyckman St', '190th St', '181st St', '175th St', '168th St', '163rd St-Amsterdam Av', '155th St', '145th St', '135th St', '125th St', '116th St', '110th St-Cathedral Pkwy', '103rd St', '96th St', '86th St', '81st St-Museum of Natural History', '72nd St', '59th St-Columbus Circle', '50th St', '42nd St-Port Authority Bus Terminal', '34th St-Penn Station', '23rd St', '14th St', 'W 4th St-Wash Sq', 'Spring St', 'Canal St', 'Chambers St', 'Fulton St', 'High St', 'Jay St-MetroTech', 'Hoyt-Schermerhorn Sts'],
+    '1': ['South Ferry', 'Rector St', 'Cortlandt St', 'Chambers St', 'Canal St', 'Franklin St', 'Houston St', 'Christopher St-Sheridan Sq', '14th St', '18th St', '23rd St', '28th St', '34th St-Penn Station', 'Times Sq-42nd St', '50th St', '59th St-Columbus Circle', '66th St-Lincoln Center', '72nd St', '79th St', '86th St', '96th St', '103rd St', '110th St-Cathedral Pkwy', '116th St-Columbia University', '125th St', '137th St-City College', '145th St', '157th St', '168th St-Washington Hts', '181st St', '191st St', 'Dyckman St', '207th St', '215th St', '225th St', '231st St', '238th St', 'Van Cortlandt Park-242nd St']
+  };
+  
+  const stations = demoStations[lineId] || [`Demo Station 1`, `Demo Station 2`, `Demo Station 3`, `Demo Station 4`, `Demo Station 5`];
+  const numArrivals = Math.floor(Math.random() * 8) + 5; // 5-12 arrivals
   
   for (let i = 0; i < numArrivals; i++) {
-    const minutesFromNow = Math.floor(Math.random() * 30) + 1;
+    const minutesFromNow = Math.floor(Math.random() * 25) + 1; // 1-25 minutes
     const arrivalTime = new Date(now.getTime() + minutesFromNow * 60000);
+    const station = stations[Math.floor(Math.random() * stations.length)];
+    const direction = Math.random() > 0.5 ? 'N' : 'S';
     
     demoArrivals.push({
       routeId: lineId,
       tripId: `DEMO_${lineId}_${i + 1}`,
-      stopId: `${lineId}${Math.floor(Math.random() * 50) + 1}${Math.random() > 0.5 ? 'N' : 'S'}`,
-      stationName: `Demo Station ${i + 1}`,
-      direction: Math.random() > 0.5 ? 'N' : 'S',
-      destination: Math.random() > 0.5 ? 'Northbound' : 'Southbound',
-      arrivalTime: arrivalTime.toLocaleString(),
-      departureTime: arrivalTime.toLocaleString(),
-      epoch: Math.floor(arrivalTime.getTime() / 1000)
+      stopId: `${lineId}${Math.floor(Math.random() * 50) + 1}${direction}`,
+      stationName: station,
+      direction: direction,
+      destination: direction === 'N' ? 'Northbound' : 'Southbound',
+      arrivalTime: formatArrivalTime(Math.floor(arrivalTime.getTime() / 1000)),
+      departureTime: formatArrivalTime(Math.floor(arrivalTime.getTime() / 1000)),
+      epoch: Math.floor(arrivalTime.getTime() / 1000),
+      dataQuality: 'demo'
     });
   }
+  
+  // Sort by arrival time
+  demoArrivals.sort((a, b) => a.epoch - b.epoch);
   
   return {
     updated: new Date().toLocaleString(),
     count: demoArrivals.length,
     arrivals: demoArrivals,
-    demo: true
+    demo: true,
+    dataQuality: 'demo',
+    message: 'Demo data - Real-time feeds unavailable'
   };
 }
 
-// Create API endpoints for each train line
+// Cache cleanup function
+function cleanupCache() {
+  const now = Date.now();
+  const maxAge = CACHE_DURATION * 3; // 3x cache duration
+  
+  for (const [key, value] of dataCache.entries()) {
+    if (now - value.timestamp > maxAge) {
+      dataCache.delete(key);
+      console.log(`Cleaned up stale cache entry: ${key}`);
+    }
+  }
+}
+
+// Run cache cleanup every 5 minutes
+setInterval(cleanupCache, 5 * 60 * 1000);
+
+// Health monitoring endpoint
+app.get("/api/health", (req, res) => {
+  const now = Date.now();
+  const cacheStats = {
+    totalCached: dataCache.size,
+    cacheEntries: []
+  };
+  
+  for (const [key, value] of dataCache.entries()) {
+    const age = now - value.timestamp;
+    cacheStats.cacheEntries.push({
+      line: key.split('_')[0],
+      age: Math.round(age / 1000),
+      fresh: age < CACHE_DURATION,
+      dataQuality: value.data.dataQuality || 'unknown'
+    });
+  }
+  
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    cache: cacheStats,
+    apiKey: process.env.MTA_API_KEY ? 'configured' : 'missing'
+  });
+});
+
+// Enhanced API endpoints with better error handling
 Object.keys(MTA_FEEDS).forEach(lineId => {
   const endpoint = `/api/${lineId.toLowerCase()}-arrivals`;
   app.get(endpoint, async (req, res) => {
+    const startTime = Date.now();
+    
     try {
       const feedUrl = MTA_FEEDS[lineId];
       const data = await fetchArrivalsForLine(lineId, feedUrl);
+      
+      // Add performance metrics
+      const responseTime = Date.now() - startTime;
+      data.responseTime = responseTime;
+      data.endpoint = endpoint;
       
       // Check if this is a letter route that's not available in current feeds
       const isLetterRoute = /^[A-Z]$/.test(lineId);
@@ -1348,11 +1544,22 @@ Object.keys(MTA_FEEDS).forEach(lineId => {
         const demoData = generateDemoData(lineId);
         demoData.message = `Demo data - ${lineId} line not available in current MTA feeds`;
         demoData.availableRoutes = data.availableRoutes || [];
+        demoData.responseTime = responseTime;
+        demoData.endpoint = endpoint;
         return res.json(demoData);
       }
       
+      // Set appropriate cache headers
+      res.set({
+        'Cache-Control': 'public, max-age=30',
+        'X-Data-Quality': data.dataQuality || 'realtime',
+        'X-Response-Time': responseTime.toString(),
+        'X-Feed-Age': data.dataAge?.toString() || 'unknown'
+      });
+      
       res.json(data);
     } catch (error) {
+      const responseTime = Date.now() - startTime;
       console.error(`Error in ${endpoint}:`, error);
       
       // If no API key is configured, return demo data
@@ -1360,6 +1567,8 @@ Object.keys(MTA_FEEDS).forEach(lineId => {
         console.log(`No API key configured, returning demo data for ${lineId} line`);
         const demoData = generateDemoData(lineId);
         demoData.message = "Demo data - Configure MTA_API_KEY in .env for real data";
+        demoData.responseTime = responseTime;
+        demoData.endpoint = endpoint;
         return res.json(demoData);
       }
       
@@ -1368,7 +1577,10 @@ Object.keys(MTA_FEEDS).forEach(lineId => {
         error: `Failed to load ${lineId} line arrivals`, 
         details: String(error),
         message: "Make sure the MTA API key and feed URLs are configured in your .env file",
-        demo: false
+        demo: false,
+        responseTime: responseTime,
+        endpoint: endpoint,
+        timestamp: new Date().toISOString()
       });
     }
   });
