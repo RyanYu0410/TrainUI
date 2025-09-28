@@ -444,3 +444,19 @@ Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
 Found 26 valid arrivals for 5 line (5s old)
 Available routes in feed: 1, 2, 3, 4, 5, 6, 7
 Using cached data for 5 line (0s remaining)
+Cleaned up stale cache entry: 5_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs
+
+> mta-g-site@1.0.0 start
+> node server.js
+
+Server on http://localhost:3000
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 170 valid arrivals for G line (2s old)
+Available routes in feed: G
+Fetching A line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace (attempt 1)
+Data freshness - Last-Modified: null, Age: nulls, Cache-Control: null
+Found 678 valid arrivals for A line (10s old)
+Available routes in feed: A, E, H
+Cleaned up stale cache entry: G_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
+Cleaned up stale cache entry: A_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace

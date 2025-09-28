@@ -1201,7 +1201,7 @@ function validateArrivalData(arrival) {
   return arrival.epoch >= minPastTime && 
          arrival.epoch <= maxFutureTime &&
          arrival.stationName && 
-         arrival.stationName !== 'Unknown Station' &&
+         arrival.stationName.length > 0 &&
          arrival.routeId;
 }
 
@@ -1314,13 +1314,13 @@ async function fetchArrivalsForLine(lineId, feedUrl, retryCount = 0) {
         const baseStopId = stopId.replace(/[NSEW]$/, "");
         let stationName = ALL_STATION_NAMES[baseStopId] || 
                          ALL_STATION_NAMES[stopId] || 
-                         `Station ${baseStopId}`;
+                         `Stop ${baseStopId}`;
         
         // Clean up station names
         stationName = stationName.replace(/\s+/g, ' ').trim();
         
-        // Enhanced destination logic
-        let destination = "Unknown";
+        // Enhanced destination logic with better fallbacks
+        let destination = "";
         const tripHeadsign = entity.tripUpdate.trip?.tripHeadsign;
         if (tripHeadsign) {
           destination = tripHeadsign;
@@ -1328,6 +1328,33 @@ async function fetchArrivalsForLine(lineId, feedUrl, retryCount = 0) {
         else if (dir === "S") destination = "Southbound";
         else if (dir === "E") destination = "Eastbound";
         else if (dir === "W") destination = "Westbound";
+        else {
+          // Use line-specific terminal stations as fallback
+          const terminalStations = {
+            'G': 'Court Sq / Church Av',
+            'A': 'Inwood / Far Rockaway',
+            'C': '168 St / Euclid Av',
+            'E': 'Jamaica Center / World Trade Center',
+            'B': 'Bedford Park / Brighton Beach',
+            'D': 'Norwood / Coney Island',
+            'F': 'Jamaica / Coney Island',
+            'M': 'Middle Village / Metropolitan Av',
+            'J': 'Jamaica Center / Broad St',
+            'L': '8 Av / Canarsie',
+            'N': 'Astoria / Coney Island',
+            'Q': 'Astoria / Coney Island',
+            'R': 'Astoria / Bay Ridge',
+            'W': 'Astoria / Whitehall St',
+            '1': 'South Ferry / Van Cortlandt Park',
+            '2': 'Wakefield / Flatbush Av',
+            '3': 'Harlem / New Lots Av',
+            '4': 'Woodlawn / Utica Av',
+            '5': 'Dyre Av / Flatbush Av',
+            '6': 'Pelham Bay Park / Brooklyn Bridge',
+            '7': 'Flushing / Hudson Yards'
+          };
+          destination = terminalStations[lineId] || `${lineId} Line`;
+        }
         
         const arrivalData = {
           routeId,
@@ -1622,8 +1649,8 @@ app.get("/api/g-arrivals", async (req, res) => {
 
         // Extract base stop ID (remove N/S suffix for station name lookup)
         const baseStopId = stopId.replace(/[NS]$/, "");
-        const stationName = G_STATION_NAMES[baseStopId] || "Unknown Station";
-        const destination = dir === "N" ? "Court Square" : dir === "S" ? "Church Avenue" : "Unknown";
+        const stationName = G_STATION_NAMES[baseStopId] || `Stop ${baseStopId}`;
+        const destination = dir === "N" ? "Court Square" : dir === "S" ? "Church Avenue" : "G Line";
         
         arrivals.push({
           routeId,
