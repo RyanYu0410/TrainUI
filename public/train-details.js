@@ -128,10 +128,10 @@ class TrainDetails {
     }
     
     updateStationInformation() {
-        // Update station name
-        const stationName = document.getElementById('stationName');
-        if (stationName) {
-            stationName.textContent = this.currentStation;
+        // Update the section title to show the actual station name
+        const currentStationTitle = document.getElementById('currentStationTitle');
+        if (currentStationTitle) {
+            currentStationTitle.textContent = this.currentStation;
         }
         
         // Find station data and update details
@@ -143,7 +143,13 @@ class TrainDetails {
                 // Update borough
                 const borough = document.getElementById('borough');
                 if (borough) {
-                    borough.textContent = station.borough || 'Unknown';
+                    const boroughValue = station.borough || 'Unknown';
+                    if (boroughValue === 'Unknown') {
+                        borough.style.display = 'none';
+                    } else {
+                        borough.style.display = 'inline';
+                        borough.textContent = boroughValue;
+                    }
                 }
                 
                 // Update accessibility
@@ -204,15 +210,6 @@ class TrainDetails {
         }
         
         routeMap.innerHTML = '';
-        
-        // Add line indicator at top
-        const lineIndicator = document.createElement('div');
-        lineIndicator.className = 'line-header';
-        lineIndicator.innerHTML = `
-            <div class="line-badge">${this.currentLine}</div>
-            <div class="line-title">${this.currentLine} Line</div>
-        `;
-        routeMap.appendChild(lineIndicator);
         
         // Create condensed station list with connecting line
         const stationList = document.createElement('div');
