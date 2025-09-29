@@ -179,7 +179,28 @@ class ArrivalsApp {
                 <td>
                     <span class="time">${arrival.departureTime || ''}</span>
                 </td>
+                <td>
+                    ${this.createRidershipCell(arrival.ridership)}
+                </td>
             </tr>
+        `;
+    }
+
+    createRidershipCell(ridership) {
+        if (!ridership) {
+            return '<span class="ridership-data">-</span>';
+        }
+
+        const { averageRidership, dataPoints } = ridership;
+        
+        if (averageRidership === 0 || dataPoints === 0) {
+            return '<span class="ridership-data no-data">No data</span>';
+        }
+
+        return `
+            <div class="ridership-cell">
+                <span class="ridership-number">${averageRidership}</span>
+            </div>
         `;
     }
 

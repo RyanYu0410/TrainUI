@@ -488,3 +488,51 @@ body {
         transform: scale(0.98);
     }
 }
+
+/* Ridership column styling */
+.ridership-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 100px;
+}
+
+.ridership-number {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #ffffff;
+}
+
+
+.ridership-data {
+    color: #888888;
+    font-style: italic;
+}
+
+.ridership-data.no-data {
+    color: #666666;
+}
+
+/* Responsive ridership styling */
+@media (max-width: 768px) {
+    .ridership-cell {
+        min-width: 80px;
+    }
+    
+    .ridership-number {
+        font-size: 0.9rem;
+    }
+    
+}
+
+@media (max-width: 480px) {
+    .ridership-cell {
+        min-width: 70px;
+    }
+    
+    .ridership-number {
+        font-size: 0.8rem;
+    }
+    
+}

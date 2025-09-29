@@ -462,6 +462,275 @@ function calculateTransferTime(station1, transfer, station2, line1, line2) {
   return '18 min';
 }
 
+// Load global ridership data once
+async function loadGlobalRidershipData() {
+  const now = Date.now();
+  
+  // Check if we have fresh global data
+  if (globalRidershipData && (now - globalRidershipDataTimestamp) < GLOBAL_RIDERSHIP_CACHE_DURATION) {
+    return globalRidershipData;
+  }
+
+  try {
+    console.log('Loading global ridership data from NYC API...');
+    
+    const apiUrl = `https://data.ny.gov/resource/wujg-7c2s.json?transit_mode=subway&$limit=10000`;
+    
+    const response = await fetch(apiUrl, {
+      headers: {
+        'X-App-Token': NYC_APP_TOKEN,
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`NYC API responded ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new Error('No ridership data received from API');
+    }
+
+    // Process and index the data by station
+    const stationIndex = new Map();
+    
+    for (const record of data) {
+      if (!record.station_complex || !record.ridership) continue;
+      
+      // Clean station name by removing line information in parentheses
+      let stationName = record.station_complex.toLowerCase().trim();
+      stationName = stationName.replace(/\s*\([^)]*\)\s*$/, '').trim(); // Remove (J,Z) etc.
+      stationName = stationName.replace(/\s*\/[^\/]*$/, '').trim(); // Remove /Bleecker St (6) etc.
+      
+      const ridership = parseFloat(record.ridership);
+      
+      if (isNaN(ridership)) continue;
+      
+      if (!stationIndex.has(stationName)) {
+        stationIndex.set(stationName, []);
+      }
+      stationIndex.get(stationName).push(ridership);
+    }
+
+    // Calculate averages for each station
+    const processedData = new Map();
+    for (const [stationName, ridershipValues] of stationIndex.entries()) {
+      if (ridershipValues.length === 0) continue;
+      
+      const total = ridershipValues.reduce((sum, val) => sum + val, 0);
+      const average = Math.round(total / ridershipValues.length);
+      
+      processedData.set(stationName, {
+        averageRidership: average,
+        dataPoints: ridershipValues.length,
+        lastUpdated: new Date().toISOString()
+      });
+    }
+
+    globalRidershipData = processedData;
+    globalRidershipDataTimestamp = now;
+    
+    console.log(`Loaded ridership data for ${processedData.size} stations`);
+    
+    // Log some sample station names for debugging
+    const sampleStations = Array.from(processedData.keys()).slice(0, 10);
+    console.log('Sample station names in dataset:', sampleStations);
+    
+    return processedData;
+
+  } catch (error) {
+    console.error('Error loading global ridership data:', error);
+    return null;
+  }
+}
+
+// Ridership data functions
+async function fetchRidershipData(stationName, lineId) {
+  const cacheKey = `${stationName}_${lineId}`;
+  const now = Date.now();
+  
+  // Check cache first
+  if (ridershipCache.has(cacheKey)) {
+    const cached = ridershipCache.get(cacheKey);
+    if (now - cached.timestamp < RIDERSHIP_CACHE_DURATION) {
+      return cached.data;
+    }
+  }
+
+  try {
+    // Load global data if not available
+    const globalData = await loadGlobalRidershipData();
+    if (!globalData) {
+      return { averageRidership: 0, dataPoints: 0, confidence: 'error', error: 'Failed to load ridership data' };
+    }
+
+    // Clean station name for matching
+    const cleanStationName = stationName.replace(/[–-]/g, '-').replace(/\s+/g, ' ').toLowerCase().trim();
+    
+    // Also try variations of the station name
+    const searchVariations = [
+      cleanStationName,
+      cleanStationName.replace(/\s+st\b/g, ' street'),
+      cleanStationName.replace(/\s+av\b/g, ' avenue'),
+      cleanStationName.replace(/\s+blvd\b/g, ' boulevard'),
+      cleanStationName.replace(/\s+sq\b/g, ' square'),
+      cleanStationName.replace(/\s+street\b/g, ' st'),
+      cleanStationName.replace(/\s+avenue\b/g, ' av'),
+      cleanStationName.replace(/\s+boulevard\b/g, ' blvd'),
+      cleanStationName.replace(/\s+square\b/g, ' sq'),
+      // Handle specific problematic cases
+      cleanStationName.replace(/\s+avenues?\b/g, ' avs'),
+      cleanStationName.replace(/\s+avs\b/g, ' avenues'),
+      // Handle numbered streets
+      cleanStationName.replace(/(\d+)(st|nd|rd|th)\b/g, '$1 $2'),
+      cleanStationName.replace(/(\d+)\s+(st|nd|rd|th)\b/g, '$1$2')
+    ];
+    
+    // Try to find matching station data with improved matching
+    let bestMatch = null;
+    let bestScore = 0;
+    
+    for (const [recordStation, data] of globalData.entries()) {
+      let score = 0;
+      
+      // Try each variation of the search term
+      for (const searchTerm of searchVariations) {
+        // Exact match
+        if (recordStation === searchTerm) {
+          score = Math.max(score, 100);
+        }
+        // Contains match
+        else if (recordStation.includes(searchTerm) || searchTerm.includes(recordStation)) {
+          score = Math.max(score, 80);
+        }
+        // Handle complex station names with multiple lines (e.g., "14 St (A,C,E)/8 Av (L)")
+        else if (recordStation.includes('/') && recordStation.split('/').some(part => part.includes(searchTerm))) {
+          score = Math.max(score, 75);
+        }
+        // Handle station names with line information in parentheses
+        else if (recordStation.includes('(') && recordStation.split('(')[0].trim().includes(searchTerm)) {
+          score = Math.max(score, 70);
+        }
+        // Word-based matching with improved logic
+        else {
+          const recordWords = recordStation.split(/[\s\-–]+/).filter(w => w.length > 0);
+          const searchWords = searchTerm.split(/[\s\-–]+/).filter(w => w.length > 0);
+          
+          let matchingWords = 0;
+          let totalWords = Math.max(recordWords.length, searchWords.length);
+          
+          for (const searchWord of searchWords) {
+            for (const recordWord of recordWords) {
+              // Exact word match
+              if (recordWord === searchWord) {
+                matchingWords += 2;
+              }
+              // Partial word match
+              else if (recordWord.includes(searchWord) || searchWord.includes(recordWord)) {
+                matchingWords += 1;
+              }
+              // Handle common abbreviations and variations
+              else if (
+              (searchWord === 'st' && recordWord === 'street') ||
+              (searchWord === 'street' && recordWord === 'st') ||
+              (searchWord === 'av' && recordWord === 'avenue') ||
+              (searchWord === 'avenue' && recordWord === 'av') ||
+              (searchWord === 'avs' && recordWord === 'avenues') ||
+              (searchWord === 'avenues' && recordWord === 'avs') ||
+              (searchWord === 'blvd' && recordWord === 'boulevard') ||
+              (searchWord === 'boulevard' && recordWord === 'blvd') ||
+              (searchWord === 'sq' && recordWord === 'square') ||
+              (searchWord === 'square' && recordWord === 'sq') ||
+              // Handle numbered streets
+              (searchWord.match(/^\d+$/) && recordWord.match(/^\d+$/)) ||
+              // Handle specific cases like "14th" vs "14"
+              (searchWord.replace(/\D/g, '') === recordWord.replace(/\D/g, ''))
+            ) {
+              matchingWords += 1.5;
+            }
+          }
+        }
+          
+          score = Math.max(score, (matchingWords / totalWords) * 70);
+        }
+      }
+      
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = data;
+      }
+    }
+
+    let result;
+    if (bestMatch && bestScore >= 25) { // Lowered threshold for better coverage
+      result = {
+        ...bestMatch,
+        stationName: cleanStationName,
+        matchScore: bestScore
+      };
+    } else {
+      result = { 
+        averageRidership: 0, 
+        dataPoints: 0, 
+        confidence: 'low',
+        stationName: cleanStationName,
+        matchScore: bestScore
+      };
+    }
+
+    // Cache the result
+    ridershipCache.set(cacheKey, {
+      data: result,
+      timestamp: now
+    });
+
+    return result;
+
+  } catch (error) {
+    console.error(`Error fetching ridership data for ${stationName}:`, error);
+    
+    // Return cached data if available
+    if (ridershipCache.has(cacheKey)) {
+      const cached = ridershipCache.get(cacheKey);
+      return {
+        ...cached.data,
+        confidence: 'stale'
+      };
+    }
+    
+    return { averageRidership: 0, dataPoints: 0, confidence: 'error', error: error.message };
+  }
+}
+
+// Function to get ridership for a specific station and line combination
+async function getStationRidership(stationName, lineId) {
+  // Try exact station name first
+  let ridership = await fetchRidershipData(stationName, lineId);
+  
+  // If no data found, try variations of the station name
+  if (ridership.dataPoints === 0) {
+    const variations = [
+      stationName.replace(/–/g, '-'),
+      stationName.replace(/-/g, '–'),
+      stationName.split('–')[0].trim(),
+      stationName.split('-')[0].trim()
+    ];
+    
+    for (const variation of variations) {
+      if (variation !== stationName) {
+        ridership = await fetchRidershipData(variation, lineId);
+        if (ridership.dataPoints > 0) {
+          break;
+        }
+      }
+    }
+  }
+  
+  return ridership;
+}
+
 // MTA API Feed URLs - These are the actual working feeds
 const MTA_FEEDS = {
   // Individual line feeds (these work reliably)
@@ -1192,6 +1461,16 @@ const CACHE_DURATION = 30 * 1000; // 30 seconds
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
 
+// Ridership data cache
+const ridershipCache = new Map();
+const RIDERSHIP_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const NYC_APP_TOKEN = "K3zOykMAZX3QURV98nMZs6Vr2";
+
+// Global ridership data cache to avoid repeated API calls
+let globalRidershipData = null;
+let globalRidershipDataTimestamp = 0;
+const GLOBAL_RIDERSHIP_CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+
 // Data quality validation
 function validateArrivalData(arrival) {
   const now = Math.floor(Date.now() / 1000);
@@ -1367,7 +1646,8 @@ async function fetchArrivalsForLine(lineId, feedUrl, retryCount = 0) {
           departureTime: departure ? formatArrivalTime(departure) : null,
           epoch: t,
           feedTimestamp: feedTimestamp,
-          dataQuality: 'realtime'
+          dataQuality: 'realtime',
+          ridership: null // Will be populated later
         };
 
         // Validate data quality
@@ -1391,10 +1671,47 @@ async function fetchArrivalsForLine(lineId, feedUrl, retryCount = 0) {
       }
     }
 
+    // Add ridership data to arrivals (limit to first 30 to get better coverage)
+    const arrivalsWithRidership = [];
+    
+    // Process ridership data in smaller batches to avoid overwhelming the API
+    const batchSize = 10;
+    const maxWithRidership = Math.min(uniqueArrivals.length, 30);
+    
+    for (let i = 0; i < maxWithRidership; i += batchSize) {
+      const batch = uniqueArrivals.slice(i, i + batchSize);
+      const batchPromises = batch.map(arrival => 
+        getStationRidership(arrival.stationName, lineId).then(ridership => {
+          arrival.ridership = ridership;
+          return arrival;
+        }).catch(error => {
+          console.error(`Error getting ridership for ${arrival.stationName}:`, error);
+          arrival.ridership = { averageRidership: 0, dataPoints: 0, confidence: 'error' };
+          return arrival;
+        })
+      );
+      
+      try {
+        const batchResults = await Promise.all(batchPromises);
+        arrivalsWithRidership.push(...batchResults);
+      } catch (error) {
+        console.error('Error fetching ridership batch:', error);
+        arrivalsWithRidership.push(...batch);
+      }
+      
+      // Small delay between batches to be respectful to the API
+      if (i + batchSize < maxWithRidership) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+    
+    // Add remaining arrivals without ridership data
+    arrivalsWithRidership.push(...uniqueArrivals.slice(maxWithRidership));
+
     const result = {
       updated: new Date().toLocaleString(),
-      count: uniqueArrivals.length,
-      arrivals: uniqueArrivals.slice(0, 150), // Increased limit
+      count: arrivalsWithRidership.length,
+      arrivals: arrivalsWithRidership.slice(0, 150), // Increased limit
       availableRoutes: Array.from(availableRoutes),
       feedTimestamp: feedTimestamp,
       dataAge: Math.round(feedAge),
