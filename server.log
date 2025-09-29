@@ -460,3 +460,4 @@ Found 678 valid arrivals for A line (10s old)
 Available routes in feed: A, E, H
 Cleaned up stale cache entry: G_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g
 Cleaned up stale cache entry: A_https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace
+Fetching G line from https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g (attempt 1)

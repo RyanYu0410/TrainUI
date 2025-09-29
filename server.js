@@ -1978,17 +1978,66 @@ app.get("/api/g-arrivals", async (req, res) => {
           destination,
           arrivalTime: arrival ? formatArrivalTime(arrival) : null,
           departureTime: departure ? formatArrivalTime(departure) : null,
-          epoch: t
+          epoch: t,
+          ridership: null // Will be populated later
         });
       }
     }
 
     arrivals.sort((a, b) => a.epoch - b.epoch);
 
+    // Remove duplicate arrivals (same trip, same stop)
+    const uniqueArrivals = [];
+    const seen = new Set();
+    for (const arrival of arrivals) {
+      const key = `${arrival.tripId}_${arrival.stopId}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueArrivals.push(arrival);
+      }
+    }
+
+    // Add ridership data to arrivals (limit to first 30 to get better coverage)
+    const arrivalsWithRidership = [];
+    
+    // Process ridership data in smaller batches to avoid overwhelming the API
+    const batchSize = 10;
+    const maxWithRidership = Math.min(uniqueArrivals.length, 30);
+    
+    for (let i = 0; i < maxWithRidership; i += batchSize) {
+      const batch = uniqueArrivals.slice(i, i + batchSize);
+      const batchPromises = batch.map(arrival => 
+        getStationRidership(arrival.stationName, 'G').then(ridership => {
+          arrival.ridership = ridership;
+          return arrival;
+        }).catch(error => {
+          console.error(`Error getting ridership for ${arrival.stationName}:`, error);
+          arrival.ridership = { averageRidership: 0, dataPoints: 0, confidence: 'error' };
+          return arrival;
+        })
+      );
+      
+      try {
+        const batchResults = await Promise.all(batchPromises);
+        arrivalsWithRidership.push(...batchResults);
+      } catch (error) {
+        console.error('Error fetching ridership batch:', error);
+        arrivalsWithRidership.push(...batch);
+      }
+      
+      // Small delay between batches to be respectful to the API
+      if (i + batchSize < maxWithRidership) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+    
+    // Add remaining arrivals without ridership data
+    arrivalsWithRidership.push(...uniqueArrivals.slice(maxWithRidership));
+
     res.json({
       updated: new Date().toLocaleString(),
-      count: arrivals.length,
-      arrivals
+      count: arrivalsWithRidership.length,
+      arrivals: arrivalsWithRidership
     });
   } catch (err) {
     console.error(err);
