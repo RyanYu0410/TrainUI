@@ -237,14 +237,6 @@ class TrainDetails {
         });
         
         routeMap.appendChild(stationList);
-        
-        // Add station count summary
-        const summary = document.createElement('div');
-        summary.className = 'station-summary';
-        summary.innerHTML = `
-            <div class="summary-text">${lineStations.length} total stations on ${this.currentLine} line</div>
-        `;
-        routeMap.appendChild(summary);
     }
     
     getLineStations(line) {

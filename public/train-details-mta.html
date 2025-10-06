@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTA Subway Information Display</title>
+    <link rel="stylesheet" href="train-details-mta.css">
+</head>
+<body data-theme="dark" data-chroma="brand">
+    <!-- Theme Controls -->
+    <div class="theme-controls">
+        <button class="theme-toggle active" data-theme="dark">Dark</button>
+        <button class="theme-toggle" data-theme="light">Light</button>
+        <button class="theme-toggle active" data-chroma="brand">Color</button>
+        <button class="theme-toggle" data-chroma="bw">B&W</button>
+    </div>
+
+    <div class="container">
+        <!-- Station Information Section -->
+        <div class="section-header">Station Information</div>
+        
+        <div class="station-header">
+            <div class="station-info">
+                <div class="station-name" id="stationName">Times Sq-42 St</div>
+                <div class="station-details">
+                    <span class="borough">Manhattan</span>
+                    <span class="accessibility">ADA Accessible</span>
+                </div>
+            </div>
+            <div class="line-badges">
+                <div class="route-badge irt" style="background: var(--route-1);">1</div>
+                <div class="route-badge irt" style="background: var(--route-2);">2</div>
+                <div class="route-badge irt" style="background: var(--route-3);">3</div>
+                <div class="route-badge irt" style="background: var(--route-7);">7</div>
+                <div class="route-badge" style="background: var(--route-N);">N</div>
+                <div class="route-badge" style="background: var(--route-Q);">Q</div>
+                <div class="route-badge" style="background: var(--route-R);">R</div>
+                <div class="route-badge" style="background: var(--route-W);">W</div>
+                <div class="route-badge" style="background: var(--route-S);">S</div>
+            </div>
+        </div>
+
+        <!-- Route Map Section -->
+        <div class="section-header">Route Map</div>
+        <div class="route-map">
+            <div class="condensed-stations">
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">South Ferry</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">Rector St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">Cortlandt St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">Chambers St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">Canal St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">Franklin St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">Houston St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">Christopher St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">14th St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">18th St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">23rd St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">28th St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">34th St-Penn Station</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">Times Sq-42 St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">50th St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">59th St-Columbus Circle</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">66th St-Lincoln Center</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">72nd St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">79th St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">86th St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">96th St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">103rd St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">110th St-Cathedral Pkwy</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">116th St-Columbia University</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">125th St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">137th St-City College</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">145th St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">157th St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">168th St-Washington Hts</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">181st St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">191st St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">Dyckman St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">207th St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">215th St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">225th St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">231st St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">238th St</div>
+                </div>
+                <div class="station-item">
+                    <div class="station-dot"></div>
+                    <div class="station-name-small">Van Cortlandt Park-242nd St</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Train Arrivals Section -->
+        <div class="section-header">Train Arrivals</div>
+        <div class="arrivals-section">
+            <div class="arrival-row">
+                <div class="route-badge" style="background: var(--route-1);">1</div>
+                <div class="arrival-destination">
+                    <div class="destination-name">South Ferry</div>
+                    <div class="destination-subtext">Local</div>
+                </div>
+                <div class="arrival-time">2</div>
+            </div>
+            <div class="arrival-row">
+                <div class="route-badge" style="background: var(--route-2);">2</div>
+                <div class="arrival-destination">
+                    <div class="destination-name">Flatbush Av-Brooklyn College</div>
+                    <div class="destination-subtext">Express</div>
+                </div>
+                <div class="arrival-time">4</div>
+            </div>
+            <div class="arrival-row">
+                <div class="route-badge" style="background: var(--route-3);">3</div>
+                <div class="arrival-destination">
+                    <div class="destination-name">New Lots Av</div>
+                    <div class="destination-subtext">Express</div>
+                </div>
+                <div class="arrival-time">7</div>
+            </div>
+            <div class="arrival-row">
+                <div class="route-badge" style="background: var(--route-7);">7</div>
+                <div class="arrival-destination">
+                    <div class="destination-name">Flushing-Main St</div>
+                    <div class="destination-subtext">Express</div>
+                </div>
+                <div class="arrival-time">9</div>
+            </div>
+            <div class="arrival-row">
+                <div class="route-badge" style="background: var(--route-N);">N</div>
+                <div class="arrival-destination">
+                    <div class="destination-name">Coney Island-Stillwell Av</div>
+                    <div class="destination-subtext">Express</div>
+                </div>
+                <div class="arrival-time">12</div>
+            </div>
+            <div class="arrival-row">
+                <div class="route-badge" style="background: var(--route-Q);">Q</div>
+                <div class="arrival-destination">
+                    <div class="destination-name">Coney Island-Stillwell Av</div>
+                    <div class="destination-subtext">Express</div>
+                </div>
+                <div class="arrival-time">15</div>
+            </div>
+            <div class="arrival-row">
+                <div class="route-badge" style="background: var(--route-R);">R</div>
+                <div class="arrival-destination">
+                    <div class="destination-name">Bay Ridge-95 St</div>
+                    <div class="destination-subtext">Local</div>
+                </div>
+                <div class="arrival-time">18</div>
+            </div>
+            <div class="arrival-row">
+                <div class="route-badge" style="background: var(--route-W);">W</div>
+                <div class="arrival-destination">
+                    <div class="destination-name">Whitehall St-South Ferry</div>
+                    <div class="destination-subtext">Local</div>
+                </div>
+                <div class="arrival-time">22</div>
+            </div>
+        </div>
+
+        <!-- Service Status Section -->
+        <div class="section-header">Service Status</div>
+        <div class="status-section">
+            <div class="alert warning">
+                <div class="status-icon">▲</div>
+                <div class="alert-text">Service Advisory</div>
+            </div>
+            <div class="status-row">
+                <div class="status-icon">⏱</div>
+                <div class="status-text">Minor delays on 1, 2, 3 lines due to signal problems</div>
+            </div>
+            <div class="status-row">
+                <div class="status-icon">ℹ</div>
+                <div class="status-text">Good service on all other lines</div>
+            </div>
+        </div>
+
+        <!-- Crowd Information Section -->
+        <div class="section-header">Crowd Information</div>
+        <div class="crowd-section">
+            <div class="crowd-indicator">
+                <div class="crowd-level">High</div>
+                <div class="crowd-bar">
+                    <div class="crowd-fill" style="width: 75%;"></div>
+                </div>
+            </div>
+            <div class="crowd-indicator">
+                <div class="crowd-level">Medium</div>
+                <div class="crowd-bar">
+                    <div class="crowd-fill" style="width: 50%;"></div>
+                </div>
+            </div>
+            <div class="crowd-indicator">
+                <div class="crowd-level">Low</div>
+                <div class="crowd-bar">
+                    <div class="crowd-fill" style="width: 25%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Line Information Section -->
+        <div class="section-header">Line Information</div>
+        <div class="line-info-section">
+            <div class="line-overview">
+                <div class="line-badge-large" style="background: var(--route-1);">1</div>
+                <div class="line-details">
+                    <div class="line-title">1 Line - Broadway-7th Avenue Local</div>
+                    <div class="line-description">Runs from Van Cortlandt Park-242nd St to South Ferry</div>
+                </div>
+            </div>
+            <div class="line-overview">
+                <div class="line-badge-large" style="background: var(--route-N);">N</div>
+                <div class="line-details">
+                    <div class="line-title">N Line - Broadway Express</div>
+                    <div class="line-description">Runs from Astoria-Ditmars Blvd to Coney Island-Stillwell Av</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <button class="back-btn" onclick="goBack()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back
+    </button>
+
+    <script src="train-details-mta.js"></script>
+</body>
+</html>

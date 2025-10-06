@@ -26,6 +26,27 @@ app.get("/train-details", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "train-details.html"));
 });
 
+// Route for MTA-styled train details page
+app.get("/train-details-mta", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "train-details-mta.html"));
+});
+
+app.get("/route-roadmap-mta", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "route-roadmap-mta.html"));
+});
+
+app.get("/subway-crowd-map", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "subway-crowd-map.html"));
+});
+
+app.get("/subway-horizontal-map", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "subway-horizontal-map.html"));
+});
+
+app.get("/route-roadmap-vertical", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "route-roadmap-vertical.html"));
+});
+
 // Route for route results page
 
 // Route for G train arrivals (original functionality)

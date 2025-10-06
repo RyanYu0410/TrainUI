@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTA Route Road-Map Module</title>
+    <style>
+        /* MTA Route Road-Map Module Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0B0B0D;
+            color: #FFFFFF;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+            margin: 0;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+                align-items: flex-start;
+            }
+        }
+
+        .route-module {
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            max-height: 1920px;
+            background: #0B0B0D;
+            position: relative;
+            border: 1px solid #1C1F24;
+            font-variant-numeric: tabular-nums;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 480px) {
+            .route-module {
+                max-width: 100vw;
+                height: 100vh;
+            }
+        }
+
+        /* Header Section */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-bottom: 1px solid #1C1F24;
+            height: 80px;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 12px;
+                height: 70px;
+            }
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .route-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #0039A6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+            color: #FFFFFF;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 480px) {
+            .header-left {
+                gap: 10px;
+            }
+            
+            .route-badge {
+                width: 24px;
+                height: 24px;
+                font-size: 12px;
+            }
+        }
+
+        .header-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .destination-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #FFFFFF;
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .direction-info {
+            font-size: 12px;
+            font-weight: 500;
+            color: #B9C0C7;
+            line-height: 1.4;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .time-chip {
+            font-size: 20px;
+            font-weight: 800;
+            color: #FFFFFF;
+            font-variant-numeric: tabular-nums;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 480px) {
+            .destination-name {
+                font-size: 16px;
+            }
+            
+            .direction-info {
+                font-size: 11px;
+            }
+            
+            .time-chip {
+                font-size: 18px;
+            }
+        }
+
+        /* Road-Map Spine */
+        .roadmap-container {
+            position: relative;
+            padding: 16px;
+            height: calc(100% - 80px);
+            overflow-y: auto;
+        }
+
+        @media (max-width: 480px) {
+            .roadmap-container {
+                padding: 12px;
+                height: calc(100% - 70px);
+            }
+        }
+
+        .spine {
+            position: absolute;
+            left: 30px; /* 16px gutter + 14px (half of 28px badge) */
+            top: 10px; /* Start from first stop */
+            bottom: 10px; /* End at last stop */
+            width: 2px;
+            background: rgba(0, 57, 166, 0.9); /* C line color at 90% opacity */
+        }
+
+        @media (max-width: 480px) {
+            .spine {
+                left: 24px; /* 12px gutter + 12px (half of 24px badge) */
+                width: 2px;
+                top: 7px;
+                bottom: 7px;
+            }
+        }
+
+        /* Stop Nodes */
+        .stop-node {
+            position: absolute;
+            left: 30px;
+            transform: translateX(-50%);
+        }
+
+        @media (max-width: 480px) {
+            .stop-node {
+                left: 24px;
+            }
+        }
+
+        .stop-node.previous {
+            width: 6px;
+            height: 6px;
+            border: 1px solid rgba(0, 57, 166, 0.5);
+            border-radius: 50%;
+            background: transparent;
+        }
+
+        .stop-node.current {
+            width: 10px;
+            height: 10px;
+            border: 2px solid #FFFFFF;
+            border-radius: 50%;
+            background: #0039A6;
+        }
+
+        .stop-node.upcoming {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #0039A6;
+        }
+
+        .stop-node.terminus {
+            width: 10px;
+            height: 10px;
+            background: #0039A6;
+            border-radius: 2px;
+        }
+
+        /* Stop Labels */
+        .stop-label {
+            position: absolute;
+            left: 42px; /* 30px + 12px gap */
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            max-width: calc(100% - 50px);
+        }
+
+        @media (max-width: 480px) {
+            .stop-label {
+                left: 36px; /* 24px + 12px gap */
+                max-width: calc(100% - 40px);
+            }
+        }
+
+        .stop-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #FFFFFF;
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .stop-name.current {
+            font-weight: 700;
+            color: #FFFFFF;
+        }
+
+
+        .borough-divider {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #1C1F24;
+            z-index: 10;
+            margin: 12px 0;
+        }
+
+        .borough-label {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #0B0B0D;
+            padding: 4px 12px;
+            font-size: 9px;
+            font-weight: 700;
+            color: #B9C0C7;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid #1C1F24;
+            border-radius: 3px;
+            margin: 8px 0;
+        }
+
+        @media (max-width: 480px) {
+            .stop-name {
+                font-size: 13px;
+            }
+            
+            .borough-label {
+                font-size: 8px;
+                padding: 3px 8px;
+                left: 12px;
+                margin: 6px 0;
+            }
+        }
+
+        /* Transfer Badges */
+        .transfer-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 2px;
+        }
+
+        .transfer-badge {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: 800;
+            color: #FFFFFF;
+        }
+
+        @media (max-width: 480px) {
+            .transfer-badge {
+                width: 10px;
+                height: 10px;
+                font-size: 7px;
+            }
+        }
+
+        /* MTA Route Colors */
+        .route-A, .route-C, .route-E { background: #0039A6; }
+        .route-B, .route-D, .route-F, .route-M { background: #FF6319; }
+        .route-G { background: #6CBE45; }
+        .route-J, .route-Z { background: #996633; }
+        .route-L { background: #A7A9AC; }
+        .route-N, .route-Q, .route-R, .route-W { background: #FCCC0A; color: #0B0B0D; }
+        .route-S { background: #6D6E71; }
+        .route-1, .route-2, .route-3 { background: #EE352E; }
+        .route-4, .route-5, .route-6 { background: #00933C; }
+        .route-7 { background: #B933AD; }
+
+        /* Accessibility Icons */
+        .accessibility-icon {
+            width: 16px;
+            height: 16px;
+            margin-left: 8px;
+            opacity: 0.8;
+        }
+
+        /* Express Indicator */
+        .express-indicator {
+            font-size: 12px;
+            color: #B9C0C7;
+            margin-left: 4px;
+        }
+
+        /* Stop Positions - Compact spacing */
+        .stop-1 { top: 20px; }
+        .stop-2 { top: 50px; }
+        .stop-3 { top: 80px; }
+        .stop-4 { top: 110px; }
+        .stop-5 { top: 140px; }
+        .stop-6 { top: 170px; }
+        .stop-7 { top: 200px; }
+        .stop-8 { top: 230px; }
+        .stop-9 { top: 260px; }
+        .stop-10 { top: 290px; }
+        .stop-11 { top: 320px; }
+        .stop-12 { top: 350px; }
+        .stop-13 { top: 380px; }
+        .stop-14 { top: 410px; }
+        .stop-15 { top: 440px; }
+        .stop-16 { top: 470px; }
+        .stop-17 { top: 500px; }
+        .stop-18 { top: 530px; }
+        .stop-19 { top: 560px; }
+        .stop-20 { top: 590px; }
+        .stop-21 { top: 620px; }
+        .stop-22 { top: 650px; }
+        .stop-23 { top: 680px; }
+        .stop-24 { top: 710px; }
+        .stop-25 { top: 740px; }
+        .stop-26 { top: 770px; }
+        .stop-27 { top: 800px; }
+        .stop-28 { top: 830px; }
+        .stop-29 { top: 860px; }
+        .stop-30 { top: 890px; }
+        .stop-31 { top: 920px; }
+        .stop-32 { top: 950px; }
+        .stop-33 { top: 980px; }
+        .stop-34 { top: 1010px; }
+        .stop-35 { top: 1040px; }
+        .stop-36 { top: 1070px; }
+        .stop-37 { top: 1100px; }
+        .stop-38 { top: 1130px; }
+        .stop-39 { top: 1160px; }
+        .stop-40 { top: 1190px; }
+        .stop-41 { top: 1220px; }
+        .stop-42 { top: 1250px; }
+        .stop-43 { top: 1280px; }
+        .stop-44 { top: 1310px; }
+        .stop-45 { top: 1340px; }
+
+        @media (max-width: 480px) {
+            .stop-1 { top: 15px; }
+            .stop-2 { top: 40px; }
+            .stop-3 { top: 65px; }
+            .stop-4 { top: 90px; }
+            .stop-5 { top: 115px; }
+            .stop-6 { top: 140px; }
+            .stop-7 { top: 165px; }
+            .stop-8 { top: 190px; }
+            .stop-9 { top: 215px; }
+            .stop-10 { top: 240px; }
+            .stop-11 { top: 265px; }
+            .stop-12 { top: 290px; }
+            .stop-13 { top: 315px; }
+            .stop-14 { top: 340px; }
+            .stop-15 { top: 365px; }
+            .stop-16 { top: 390px; }
+            .stop-17 { top: 415px; }
+            .stop-18 { top: 440px; }
+            .stop-19 { top: 465px; }
+            .stop-20 { top: 490px; }
+            .stop-21 { top: 515px; }
+            .stop-22 { top: 540px; }
+            .stop-23 { top: 565px; }
+            .stop-24 { top: 590px; }
+            .stop-25 { top: 615px; }
+            .stop-26 { top: 640px; }
+            .stop-27 { top: 665px; }
+            .stop-28 { top: 690px; }
+            .stop-29 { top: 715px; }
+            .stop-30 { top: 740px; }
+            .stop-31 { top: 765px; }
+            .stop-32 { top: 790px; }
+            .stop-33 { top: 815px; }
+            .stop-34 { top: 840px; }
+            .stop-35 { top: 865px; }
+            .stop-36 { top: 890px; }
+            .stop-37 { top: 915px; }
+            .stop-38 { top: 940px; }
+            .stop-39 { top: 965px; }
+            .stop-40 { top: 990px; }
+            .stop-41 { top: 1015px; }
+            .stop-42 { top: 1040px; }
+            .stop-43 { top: 1065px; }
+            .stop-44 { top: 1090px; }
+            .stop-45 { top: 1115px; }
+        }
+
+        /* Monochrome Variant */
+        .route-module.bw .spine {
+            background: #FFFFFF;
+        }
+
+        .route-module.bw .stop-node.previous {
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .route-module.bw .stop-node.current {
+            border-color: #FFFFFF;
+            background: #0B0B0D;
+        }
+
+        .route-module.bw .stop-node.upcoming {
+            background: #FFFFFF;
+        }
+
+        .route-module.bw .stop-node.terminus {
+            background: #FFFFFF;
+        }
+
+        .route-module.bw .route-badge {
+            background: #FFFFFF;
+            color: #0B0B0D;
+        }
+
+        .route-module.bw .transfer-badge {
+            background: #FFFFFF;
+            color: #0B0B0D;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #1C1F24;
+            border: 1px solid #1C1F24;
+            color: #FFFFFF;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            background: #2C2F34;
+        }
+
+        @media (max-width: 480px) {
+            .theme-toggle {
+                top: 5px;
+                right: 5px;
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle B&W</button>
+    
+    <div class="route-module" id="routeModule">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="route-badge">C</div>
+                <div class="header-info">
+                    <div class="destination-name">Euclid Av</div>
+                    <div class="direction-info">Brooklyn-bound • Local</div>
+                </div>
+            </div>
+            <div class="time-chip">7 MIN</div>
+        </div>
+
+        <!-- Road-Map Spine -->
+        <div class="roadmap-container">
+            <div class="spine"></div>
+
+            <!-- Borough Dividers -->
+            <!-- Brooklyn Section -->
+            <div class="borough-label" style="top: 20px;">Brooklyn</div>
+            
+            <!-- Brooklyn to Queens -->
+            <div class="borough-divider" style="top: 410px;"></div>
+            <div class="borough-label" style="top: 410px;">Queens</div>
+            
+            <!-- Queens to Manhattan -->
+            <div class="borough-divider" style="top: 1280px;"></div>
+            <div class="borough-label" style="top: 1280px;">Manhattan</div>
+
+            <!-- Stop 1 - Terminus -->
+            <div class="stop-node terminus stop-1"></div>
+            <div class="stop-label stop-1">
+                <div class="stop-name">Euclid Av</div>
+            </div>
+
+            <!-- Stop 2 -->
+            <div class="stop-node upcoming stop-2"></div>
+            <div class="stop-label stop-2">
+                <div class="stop-name">Grant Av</div>
+            </div>
+
+            <!-- Stop 3 -->
+            <div class="stop-node upcoming stop-3"></div>
+            <div class="stop-label stop-3">
+                <div class="stop-name">Liberty Av</div>
+            </div>
+
+            <!-- Stop 4 -->
+            <div class="stop-node upcoming stop-4"></div>
+            <div class="stop-label stop-4">
+                <div class="stop-name">Van Siclen Av</div>
+            </div>
+
+            <!-- Stop 5 -->
+            <div class="stop-node upcoming stop-5"></div>
+            <div class="stop-label stop-5">
+                <div class="stop-name">Shepherd Av</div>
+            </div>
+
+            <!-- Stop 6 -->
+            <div class="stop-node upcoming stop-6"></div>
+            <div class="stop-label stop-6">
+                <div class="stop-name">Alabama Av</div>
+            </div>
+
+            <!-- Stop 7 -->
+            <div class="stop-node upcoming stop-7"></div>
+            <div class="stop-label stop-7">
+                <div class="stop-name">Van Siclen Av</div>
+            </div>
+
+            <!-- Stop 8 -->
+            <div class="stop-node upcoming stop-8"></div>
+            <div class="stop-label stop-8">
+                <div class="stop-name">Cleveland St</div>
+            </div>
+
+            <!-- Stop 9 -->
+            <div class="stop-node upcoming stop-9"></div>
+            <div class="stop-label stop-9">
+                <div class="stop-name">Norwood Av</div>
+            </div>
+
+            <!-- Stop 10 -->
+            <div class="stop-node upcoming stop-10"></div>
+            <div class="stop-label stop-10">
+                <div class="stop-name">Crescent St</div>
+            </div>
+
+            <!-- Stop 11 -->
+            <div class="stop-node upcoming stop-11"></div>
+            <div class="stop-label stop-11">
+                <div class="stop-name">Cypress Hills</div>
+            </div>
+
+            <!-- Stop 12 -->
+            <div class="stop-node upcoming stop-12"></div>
+            <div class="stop-label stop-12">
+                <div class="stop-name">75th St-Elderts Ln</div>
+            </div>
+
+            <!-- Stop 13 -->
+            <div class="stop-node upcoming stop-13"></div>
+            <div class="stop-label stop-13">
+                <div class="stop-name">85th St-Forest Pkwy</div>
+            </div>
+
+            <!-- Stop 14 - Borough Change to Queens -->
+            <div class="stop-node upcoming stop-14"></div>
+            <div class="stop-label stop-14">
+                <div class="stop-name">Woodhaven Blvd</div>
+                <div class="transfer-badges">
+                    <div class="transfer-badge route-J">J</div>
+                    <div class="transfer-badge route-Z">Z</div>
+                </div>
+            </div>
+
+            <!-- Stop 15 -->
+            <div class="stop-node upcoming stop-15"></div>
+            <div class="stop-label stop-15">
+                <div class="stop-name">104th St</div>
+            </div>
+
+            <!-- Stop 16 -->
+            <div class="stop-node upcoming stop-16"></div>
+            <div class="stop-label stop-16">
+                <div class="stop-name">111th St</div>
+            </div>
+
+            <!-- Stop 17 -->
+            <div class="stop-node upcoming stop-17"></div>
+            <div class="stop-label stop-17">
+                <div class="stop-name">121st St</div>
+            </div>
+
+            <!-- Stop 18 -->
+            <div class="stop-node upcoming stop-18"></div>
+            <div class="stop-label stop-18">
+                <div class="stop-name">Jamaica-Van Wyck</div>
+            </div>
+
+            <!-- Stop 19 -->
+            <div class="stop-node upcoming stop-19"></div>
+            <div class="stop-label stop-19">
+                <div class="stop-name">Sutphin Blvd-Archer Av-JFK Airport</div>
+                <div class="transfer-badges">
+                    <div class="transfer-badge route-J">J</div>
+                    <div class="transfer-badge route-Z">Z</div>
+                </div>
+            </div>
+
+            <!-- Stop 20 - Current Stop -->
+            <div class="stop-node current stop-20"></div>
+            <div class="stop-label stop-20">
+                <div class="stop-name current">Jamaica Center-Parsons/Archer</div>
+                <div class="transfer-badges">
+                    <div class="transfer-badge route-J">J</div>
+                    <div class="transfer-badge route-Z">Z</div>
+                </div>
+            </div>
+
+            <!-- Stop 21 -->
+            <div class="stop-node previous stop-21"></div>
+            <div class="stop-label stop-21">
+                <div class="stop-name">Parsons Blvd</div>
+            </div>
+
+            <!-- Stop 22 -->
+            <div class="stop-node previous stop-22"></div>
+            <div class="stop-label stop-22">
+                <div class="stop-name">169th St</div>
+            </div>
+
+            <!-- Stop 23 -->
+            <div class="stop-node previous stop-23"></div>
+            <div class="stop-label stop-23">
+                <div class="stop-name">167th St</div>
+            </div>
+
+            <!-- Stop 24 -->
+            <div class="stop-node previous stop-24"></div>
+            <div class="stop-label stop-24">
+                <div class="stop-name">Briarwood-Van Wyck Blvd</div>
+            </div>
+
+            <!-- Stop 25 -->
+            <div class="stop-node previous stop-25"></div>
+            <div class="stop-label stop-25">
+                <div class="stop-name">Kew Gardens-Union Tpke</div>
+                <div class="transfer-badges">
+                    <div class="transfer-badge route-E">E</div>
+                    <div class="transfer-badge route-F">F</div>
+                </div>
+            </div>
+
+            <!-- Stop 26 -->
+            <div class="stop-node previous stop-26"></div>
+            <div class="stop-label stop-26">
+                <div class="stop-name">75th Av</div>
+            </div>
+
+            <!-- Stop 27 -->
+            <div class="stop-node previous stop-27"></div>
+            <div class="stop-label stop-27">
+                <div class="stop-name">Forest Hills-71st Av</div>
+                <div class="transfer-badges">
+                    <div class="transfer-badge route-E">E</div>
+                    <div class="transfer-badge route-F">F</div>
+                    <div class="transfer-badge route-M">M</div>
+                    <div class="transfer-badge route-R">R</div>
+                </div>
+            </div>
+
+            <!-- Stop 28 -->
+            <div class="stop-node previous stop-28"></div>
+            <div class="stop-label stop-28">
+                <div class="stop-name">67th Av</div>
+            </div>
+
+            <!-- Stop 29 -->
+            <div class="stop-node previous stop-29"></div>
+            <div class="stop-label stop-29">
+                <div class="stop-name">63rd Dr-Rego Park</div>
+            </div>
+
+            <!-- Stop 30 -->
+            <div class="stop-node previous stop-30"></div>
+            <div class="stop-label stop-30">
+                <div class="stop-name">Woodhaven Blvd</div>
+            </div>
+
+            <!-- Stop 31 -->
+            <div class="stop-node previous stop-31"></div>
+            <div class="stop-label stop-31">
+                <div class="stop-name">Grand Av-Newtown</div>
+            </div>
+
+            <!-- Stop 32 -->
+            <div class="stop-node previous stop-32"></div>
+            <div class="stop-label stop-32">
+                <div class="stop-name">Elmhurst Av</div>
+            </div>
+
+            <!-- Stop 33 -->
+            <div class="stop-node previous stop-33"></div>
+            <div class="stop-label stop-33">
+                <div class="stop-name">Jackson Hts-Roosevelt Av</div>
+                <div class="transfer-badges">
+                    <div class="transfer-badge route-E">E</div>
+                    <div class="transfer-badge route-F">F</div>
+                    <div class="transfer-badge route-M">M</div>
+                    <div class="transfer-badge route-R">R</div>
+                    <div class="transfer-badge route-7">7</div>
+                </div>
+            </div>
+
+            <!-- Stop 34 -->
+            <div class="stop-node previous stop-34"></div>
+            <div class="stop-label stop-34">
+                <div class="stop-name">65th St</div>
+            </div>
+
+            <!-- Stop 35 -->
+            <div class="stop-node previous stop-35"></div>
+            <div class="stop-label stop-35">
+                <div class="stop-name">Northern Blvd</div>
+            </div>
+
+            <!-- Stop 36 -->
+            <div class="stop-node previous stop-36"></div>
+            <div class="stop-label stop-36">
+                <div class="stop-name">46th St</div>
+            </div>
+
+            <!-- Stop 37 -->
+            <div class="stop-node previous stop-37"></div>
+            <div class="stop-label stop-37">
+                <div class="stop-name">Steinway St</div>
+            </div>
+
+            <!-- Stop 38 -->
+            <div class="stop-node previous stop-38"></div>
+            <div class="stop-label stop-38">
+                <div class="stop-name">36th St</div>
+            </div>
+
+            <!-- Stop 39 -->
+            <div class="stop-node previous stop-39"></div>
+            <div class="stop-label stop-39">
+                <div class="stop-name">Queens Plaza</div>
+                <div class="transfer-badges">
+                    <div class="transfer-badge route-E">E</div>
+                    <div class="transfer-badge route-M">M</div>
+                    <div class="transfer-badge route-R">R</div>
+                </div>
+            </div>
+
+            <!-- Stop 40 -->
+            <div class="stop-node previous stop-40"></div>
+            <div class="stop-label stop-40">
+                <div class="stop-name">Court Sq-23rd St</div>
+                <div class="transfer-badges">
+                    <div class="transfer-badge route-E">E</div>
+                    <div class="transfer-badge route-M">M</div>
+                    <div class="transfer-badge route-7">7</div>
+                    <div class="transfer-badge route-G">G</div>
+                </div>
+            </div>
+
+            <!-- Stop 41 -->
+            <div class="stop-node previous stop-41"></div>
+            <div class="stop-label stop-41">
+                <div class="stop-name">Hunters Point Av</div>
+            </div>
+
+            <!-- Stop 42 -->
+            <div class="stop-node previous stop-42"></div>
+            <div class="stop-label stop-42">
+                <div class="stop-name">Vernon Blvd-Jackson Av</div>
+            </div>
+
+            <!-- Stop 43 - Borough Change to Manhattan -->
+            <div class="stop-node previous stop-43"></div>
+            <div class="stop-label stop-43">
+                <div class="stop-name">50th St</div>
+            </div>
+
+            <!-- Stop 44 -->
+            <div class="stop-node previous stop-44"></div>
+            <div class="stop-label stop-44">
+                <div class="stop-name">42nd St-Port Authority Bus Terminal</div>
+                <div class="transfer-badges">
+                    <div class="transfer-badge route-1">1</div>
+                    <div class="transfer-badge route-2">2</div>
+                    <div class="transfer-badge route-3">3</div>
+                    <div class="transfer-badge route-7">7</div>
+                    <div class="transfer-badge route-N">N</div>
+                    <div class="transfer-badge route-Q">Q</div>
+                    <div class="transfer-badge route-R">R</div>
+                    <div class="transfer-badge route-W">W</div>
+                </div>
+            </div>
+
+            <!-- Stop 45 - Terminus -->
+            <div class="stop-node terminus stop-45"></div>
+            <div class="stop-label stop-45">
+                <div class="stop-name">168th St</div>
+                <div class="transfer-badges">
+                    <div class="transfer-badge route-1">1</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const module = document.getElementById('routeModule');
+            module.classList.toggle('bw');
+        }
+    </script>
+</body>
+</html>
