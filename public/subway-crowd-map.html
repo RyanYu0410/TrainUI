@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYC Subway Crowd Map - C Line</title>
+    <style>
+        /* Design Tokens */
+        :root {
+            /* Dark Theme (Default) */
+            --bg: #0B0B0D;
+            --surface: #111216;
+            --text: #FFFFFF;
+            --text-2: #B9C0C7;
+            --muted: #7A828A;
+            --divider: #1C1F24;
+            
+            /* Route Colors */
+            --routeColor: #0039A6; /* C Line */
+            --nodeFill: #0039A6;
+            --nodeStroke: rgba(0, 57, 166, 0.4);
+            
+            /* Alert Colors */
+            --alertWarning: #FFD166;
+            --alertDelay: #F08A24;
+            --alertSuspended: #E74C3C;
+            --alertPlanned: #2D9CDB;
+            
+            /* Crowd Heat */
+            --crowdHigh: #EE352E;
+            --crowdMed: #FCCC0A;
+            --crowdLow: #6CBE45;
+        }
+
+        [data-theme="light"] {
+            --bg: #F7F9FB;
+            --surface: #FFFFFF;
+            --text: #0B0B0D;
+            --text-2: #3C4650;
+            --muted: #8E98A3;
+            --divider: #E6E9ED;
+        }
+
+        [data-chroma="bw"] {
+            --routeColor: var(--text);
+            --nodeFill: var(--text);
+            --nodeStroke: var(--muted);
+            --alertWarning: var(--text);
+            --alertDelay: var(--text);
+            --alertSuspended: var(--text);
+            --alertPlanned: var(--text);
+            --crowdHigh: var(--text);
+            --crowdMed: var(--text);
+            --crowdLow: var(--text);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Helvetica Neue', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            min-height: 100vh;
+            background: var(--bg);
+            position: relative;
+        }
+
+        /* Theme Controls */
+        .theme-controls {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 8px;
+            z-index: 1001;
+        }
+
+        .theme-btn {
+            background: var(--surface);
+            border: 1px solid var(--divider);
+            color: var(--text);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+        }
+
+        .theme-btn:hover {
+            background: var(--divider);
+        }
+
+        .theme-btn.active {
+            background: var(--routeColor);
+            color: #FFFFFF;
+            border-color: var(--routeColor);
+        }
+
+        /* Header */
+        .header {
+            padding: 24px;
+            border-bottom: 1px solid var(--divider);
+            position: sticky;
+            top: 0;
+            background: var(--bg);
+            z-index: 100;
+            transition: background 0s;
+        }
+
+        /* Black & White Header Flash on Arrival */
+        .header.flash {
+            animation: headerFlashBW 125ms ease-in-out 7 !important;
+        }
+
+        @keyframes headerFlashBW {
+            0%, 100% { 
+                background: #FFFFFF !important;
+                color: #000000 !important;
+            }
+            50% { 
+                background: #000000 !important;
+                color: #FFFFFF !important;
+            }
+        }
+
+        .header.flash * {
+            color: inherit !important;
+        }
+
+        .header.flash .route-badge,
+        .header.flash .route-info,
+        .header.flash .destination,
+        .header.flash .train-chip {
+            background: transparent !important;
+            border-color: currentColor !important;
+        }
+
+        /* Reduced motion support - slower throb instead of rapid flash */
+        @media (prefers-reduced-motion: reduce) {
+            .node-current.flash {
+                animation: arrivalThrob 600ms ease-in-out 2;
+            }
+
+            .header.flash {
+                animation: headerThrob 600ms ease-in-out 2;
+            }
+
+            @keyframes arrivalThrob {
+                0%, 100% { 
+                    border-color: var(--text);
+                    box-shadow: 0 0 12px 3px rgba(255, 255, 255, 0.3);
+                }
+                50% { 
+                    border-color: #000000;
+                    box-shadow: 0 0 12px 3px rgba(0, 0, 0, 0.6);
+                }
+            }
+
+            @keyframes headerThrob {
+                0%, 100% { 
+                    background: var(--bg);
+                }
+                50% { 
+                    background: var(--surface);
+                }
+            }
+        }
+
+        .route-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .route-badge {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--routeColor);
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .route-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .destination {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .direction {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-2);
+            line-height: 1.4;
+        }
+
+        /* Current Train Chip */
+        .train-chip {
+            background: var(--surface);
+            border: 1px solid var(--divider);
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s;
+        }
+
+        .train-chip.arriving {
+            animation: chipShimmer 1.5s ease-in-out infinite;
+        }
+
+        @keyframes chipShimmer {
+            0%, 100% { background: var(--surface); }
+            50% { background: rgba(0, 57, 166, 0.1); }
+        }
+
+        .train-meta {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .train-number {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .train-headsign {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .train-eta {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .train-eta.arriving {
+            color: var(--text);
+            font-weight: 800;
+        }
+
+        @keyframes etaPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Route Map */
+        .route-map {
+            padding: 32px 24px;
+            position: relative;
+            min-height: 800px;
+        }
+
+        .spline {
+            position: absolute;
+            left: 48px;
+            top: -56px;
+            bottom: -56px;
+            width: 3px;
+            background: linear-gradient(
+                to bottom,
+                transparent 0%,
+                var(--routeColor) 56px,
+                var(--routeColor) calc(100% - 56px),
+                transparent 100%
+            );
+            opacity: 0.45; /* Baseline 40-50% - stronger fade */
+        }
+
+        /* Spline fade segments between ellipsis groups - even dimmer */
+        .spline-fade {
+            position: absolute;
+            left: 48px;
+            width: 3px;
+            background: var(--routeColor);
+            opacity: 0.25; /* 20-30% between collapsed groups */
+            z-index: 4;
+        }
+
+        /* Radial brightness near nodes - ramp to 100% within ±8-10px */
+        .station:not(.ellipsis)::after {
+            content: '';
+            position: absolute;
+            left: 48px;
+            top: 12px;
+            width: 3px;
+            height: 20px;
+            background: radial-gradient(ellipse at center, var(--routeColor) 0%, transparent 100%);
+            opacity: 0.55;
+            z-index: 5;
+            transform: translateX(-1.5px) translateY(-10px);
+            pointer-events: none;
+        }
+
+        /* Dashed spline segment for skipped stations */
+        .spline-segment {
+            position: absolute;
+            left: 48px;
+            width: 3px;
+            background: none;
+            border-left: 3px dashed var(--routeColor);
+            opacity: 0.9;
+            z-index: 5;
+        }
+
+        /* Station Nodes */
+        .station {
+            position: relative;
+            margin-bottom: 48px;
+            display: flex;
+            align-items: flex-start;
+            padding-left: 72px;
+            min-height: 32px;
+        }
+
+        .station-node {
+            position: absolute;
+            left: 48px;
+            top: 8px;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
+        /* Node Types */
+        .node-current {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--nodeFill);
+            border: 2px solid var(--text);
+            box-shadow: 0 0 12px 3px rgba(0, 57, 166, 0.3);
+            position: relative;
+        }
+
+        /* Black & White Arrival Flash - overrides all themes */
+        .node-current.flash {
+            animation: arrivalFlashBW 125ms ease-in-out 7;
+        }
+
+        @keyframes arrivalFlashBW {
+            0%, 100% { 
+                border-color: #FFFFFF;
+                box-shadow: 0 0 12px 3px rgba(255, 255, 255, 0.6);
+            }
+            50% { 
+                border-color: #000000;
+                box-shadow: 0 0 12px 3px rgba(0, 0, 0, 0.6);
+            }
+        }
+
+        .node-crowded {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--nodeFill);
+            position: relative;
+        }
+
+        /* Skipped Station Node - Hollow with X overlay */
+        .node-skipped {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: transparent;
+            border: 2px solid var(--nodeFill);
+            position: relative;
+        }
+
+        .node-skipped::before,
+        .node-skipped::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 14px;
+            height: 2px;
+            background: var(--text);
+        }
+
+        .node-skipped::before {
+            transform: translate(-50%, -50%) rotate(45deg);
+        }
+
+        .node-skipped::after {
+            transform: translate(-50%, -50%) rotate(-45deg);
+        }
+
+        [data-chroma="bw"] .node-skipped::before,
+        [data-chroma="bw"] .node-skipped::after {
+            background: var(--text);
+        }
+
+        .node-normal {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: transparent;
+            border: 1.5px solid var(--nodeStroke);
+        }
+
+        .node-terminus {
+            width: 14px;
+            height: 14px;
+            background: var(--nodeFill);
+            border-radius: 2px;
+        }
+
+        .node-ellipsis {
+            width: 60px;
+            height: 24px;
+            background: var(--surface);
+            border: 1px solid var(--divider);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--muted);
+            font-weight: 600;
+            letter-spacing: 2px;
+            margin-left: -30px;
+        }
+
+        /* Station Labels - Anchored at NODE centerline (zero gutter) */
+        .station-label {
+            flex: 1;
+            padding-top: 4px;
+            margin-left: 0; /* Zero gutter */
+            position: relative;
+            padding-left: 1px; /* Max 1-2px optical offset */
+        }
+
+        .station-name {
+            font-size: 19px;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.35;
+            display: inline-flex;
+            align-items: center;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1; /* Above hill connector */
+            max-width: 320px;
+        }
+
+        /* Station name text node */
+        .station-name::first-line {
+            line-height: 1.35;
+        }
+
+        .station.current .station-name {
+            font-weight: 700;
+            font-size: 20px;
+        }
+
+        /* Skipped station styling - strikethrough */
+        .station.skipped .station-name {
+            position: relative;
+            opacity: 0.7;
+        }
+
+        .station.skipped .station-name::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 2px;
+            background: var(--text);
+            opacity: 0.8;
+        }
+
+        .skipped-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 6px;
+            background: var(--alertSuspended);
+            color: #FFFFFF;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 3px;
+            margin-left: 6px;
+            flex-shrink: 0;
+        }
+
+        [data-chroma="bw"] .skipped-chip {
+            background: transparent;
+            border: 1px solid var(--text);
+            color: var(--text);
+        }
+
+        .you-are-here {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 6px;
+            background: var(--routeColor);
+            color: #FFFFFF;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 3px;
+            margin-left: 6px;
+            flex-shrink: 0;
+        }
+
+        [data-chroma="bw"] .you-are-here {
+            background: var(--text);
+            color: var(--bg);
+        }
+
+        .station-meta {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-2);
+            line-height: 1.4;
+            margin-top: 2px;
+        }
+
+        /* Alert Icons - Semantic meanings */
+        .alert-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            margin-left: 6px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        /* ⏱ Clock = Delay/Advisory (round, yellow-orange) */
+        .alert-delay {
+            background: #FFD166;
+            color: #000000;
+            border: 1.5px solid #F08A24;
+            border-radius: 50%;
+            padding: 2px;
+            font-weight: 700;
+            width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        [data-chroma="bw"] .alert-delay {
+            background: var(--text);
+            color: var(--bg);
+            border-color: var(--bg);
+        }
+
+        [data-chroma="bw"][data-theme="light"] .alert-delay {
+            background: #000000;
+            color: #FFFFFF;
+            border-color: #FFFFFF;
+        }
+
+        /* Transfer Badges */
+        .transfers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .transfer-badge {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 800;
+            color: #FFFFFF;
+        }
+
+        /* MTA Colors */
+        .route-A, .route-C, .route-E { background: #0039A6; }
+        .route-B, .route-D, .route-F, .route-M { background: #FF6319; }
+        .route-G { background: #6CBE45; }
+        .route-J, .route-Z { background: #996633; }
+        .route-L { background: #A7A9AC; }
+        .route-N, .route-Q, .route-R, .route-W { background: #FCCC0A; color: #0B0B0D; }
+        .route-S { background: #6D6E71; }
+        .route-1, .route-2, .route-3 { background: #EE352E; }
+        .route-4, .route-5, .route-6 { background: #00933C; }
+        .route-7 { background: #B933AD; }
+
+        [data-chroma="bw"] .transfer-badge {
+            background: var(--text);
+            color: var(--bg);
+            border: 1px solid var(--text);
+        }
+
+        /* Crowd People Count Chip */
+        .crowd-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            background: var(--surface);
+            border: 1px solid var(--divider);
+            color: var(--text);
+        }
+
+        .crowd-chip .people-icon {
+            font-size: 13px;
+        }
+
+        .crowd-chip .people-count {
+            font-variant-numeric: tabular-nums;
+            font-weight: 800;
+        }
+
+        .crowd-chip.unknown {
+            opacity: 0.5;
+        }
+
+        .crowd-chip.high {
+            background: rgba(238, 53, 46, 0.15);
+            border-color: var(--crowdHigh);
+            color: var(--crowdHigh);
+        }
+
+        [data-chroma="bw"] .crowd-chip {
+            background: transparent;
+            border: 1px solid var(--muted);
+            color: var(--text);
+        }
+
+        /* Ellipsis Station Group */
+        .station.ellipsis {
+            margin-bottom: 32px;
+            opacity: 0.6;
+        }
+
+        .ellipsis-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--muted);
+            font-style: italic;
+        }
+
+        /* Terminus Station */
+        .station.terminus .station-name {
+            font-size: 17px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-variant: small-caps;
+        }
+
+        /* Status Strip - replaces legend with useful metrics */
+        .status-strip {
+            padding: 12px 24px;
+            border-top: 1px solid var(--divider);
+            background: rgba(0, 0, 0, 0.15);
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-2);
+            font-variant-numeric: tabular-nums;
+        }
+
+        [data-theme="light"] .status-strip {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--divider);
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        [data-theme="light"] .status-item {
+            background: rgba(0, 0, 0, 0.015);
+        }
+
+        .status-label {
+            opacity: 0.7;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .status-value {
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .status-ok {
+            color: var(--crowdLow);
+        }
+
+        .status-degraded {
+            color: var(--alertDelay);
+        }
+
+        .status-alert {
+            color: var(--alertSuspended);
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            body {
+                padding: 0;
+            }
+
+            .app-container {
+                max-width: 100%;
+            }
+
+            .header {
+                padding: 16px;
+            }
+
+            .route-map {
+                padding: 24px 16px;
+            }
+
+            .spline {
+                left: 40px;
+            }
+
+            .station {
+                padding-left: 64px;
+            }
+
+            .station-node {
+                left: 40px;
+            }
+        }
+
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-controls">
+        <button class="theme-btn" onclick="toggleTheme('dark')" id="darkBtn">Dark</button>
+        <button class="theme-btn" onclick="toggleTheme('light')" id="lightBtn">Light</button>
+        <button class="theme-btn" onclick="toggleChroma('brand')" id="brandBtn">Color</button>
+        <button class="theme-btn" onclick="toggleChroma('bw')" id="bwBtn">B/W</button>
+    </div>
+
+    <div class="app-container" id="app" data-theme="dark" data-chroma="brand">
+        <!-- Header -->
+        <div class="header">
+            <div class="route-info">
+                <div class="route-badge">C</div>
+                <div class="route-details">
+                    <div class="destination">168 St</div>
+                    <div class="direction">Uptown • Local</div>
+                </div>
+            </div>
+
+            <!-- Current Train Chip -->
+            <div class="train-chip" id="trainChip">
+                <div class="train-meta">
+                    <div class="train-number">Train #8402 • 8 Cars</div>
+                    <div class="train-headsign">168 St - Washington Heights</div>
+                </div>
+                <div class="train-eta" id="trainEta">2 MIN</div>
+            </div>
+        </div>
+
+        <!-- Route Map -->
+        <div class="route-map">
+            <div class="spline"></div>
+            <!-- Dashed segment for skipped station (Woodhaven Blvd area) -->
+            <div class="spline-segment" style="top: 668px; height: 60px;"></div>
+            <!-- Fade segments between ellipsis groups (40% opacity) -->
+            <div class="spline-fade" style="top: 120px; height: 48px;"></div>
+            <div class="spline-fade" style="top: 810px; height: 48px;"></div>
+            <div class="spline-fade" style="top: 960px; height: 48px;"></div>
+            <div class="spline-fade" style="top: 1000px; height: 48px;"></div>
+
+            <!-- Station 1: Terminus - Euclid Av -->
+            <div class="station terminus">
+                <div class="station-node">
+                    <div class="node-terminus"></div>
+                </div>
+                <div class="station-label">
+                    <div class="station-name">Euclid Av</div>
+                    <div class="station-meta">Brooklyn • Terminus</div>
+                    <div class="crowd-chip">
+                        <span class="people-icon">👥</span>
+                        <span class="people-count">86</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Station 2: Normal -->
+            <div class="station">
+                <div class="station-node">
+                    <div class="node-normal"></div>
+                </div>
+                <div class="station-label">
+                    <div class="station-name">Grant Av</div>
+                </div>
+            </div>
+
+            <!-- Station 3: Crowded with Delay Alert -->
+            <div class="station">
+                <div class="station-node">
+                    <div class="node-crowded"></div>
+                </div>
+                <div class="station-label">
+                    <div class="station-name">
+                        Liberty Av
+                        <span class="alert-icon alert-delay" title="Delay: Trains running late">⏱</span>
+                    </div>
+                    <div class="crowd-chip high">
+                        <span class="people-icon">👥</span>
+                        <span class="people-count">173</span>
+                        <span style="font-size: 9px; opacity: 0.7;">platform</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ellipsis Group -->
+            <div class="station ellipsis">
+                <div class="station-node">
+                    <div class="node-ellipsis">• • •</div>
+                </div>
+                <div class="station-label">
+                    <div class="ellipsis-label">5 stops</div>
+                </div>
+            </div>
+
+            <!-- Station 4: SKIPPED Station with full cross-off styling -->
+            <div class="station skipped">
+                <div class="station-node">
+                    <div class="node-skipped"></div>
+                </div>
+                <div class="station-label">
+                    <div class="station-name">
+                        Woodhaven Blvd
+                        <span class="skipped-chip" title="Bypass: Trains not stopping">Skipped / Bypass</span>
+                    </div>
+                    <div class="station-meta">Queens</div>
+                    <div class="transfers">
+                        <div class="transfer-badge route-J">J</div>
+                        <div class="transfer-badge route-Z">Z</div>
+                    </div>
+                    <div class="crowd-chip high">
+                        <span class="people-icon">👥</span>
+                        <span class="people-count">142</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Station 5: Normal -->
+            <div class="station">
+                <div class="station-node">
+                    <div class="node-normal"></div>
+                </div>
+                <div class="station-label">
+                    <div class="station-name">104th St</div>
+                </div>
+            </div>
+
+            <!-- Station 6: Normal -->
+            <div class="station">
+                <div class="station-node">
+                    <div class="node-normal"></div>
+                </div>
+                <div class="station-label">
+                    <div class="station-name">111th St</div>
+                </div>
+            </div>
+
+            <!-- Station 7: Crowded with Plate -->
+            <div class="station">
+                <div class="station-node">
+                    <div class="node-crowded"></div>
+                </div>
+                <div class="station-label">
+                    <div class="station-name">Jamaica-Van Wyck</div>
+                    <div class="crowd-chip high">
+                        <span class="people-icon">👥</span>
+                        <span class="people-count">158</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Station 8: Current Station with Plate -->
+            <div class="station current">
+                <div class="station-node">
+                    <div class="node-current" id="currentNode"></div>
+                </div>
+                <div class="station-label">
+                    <div class="station-name">
+                        Jamaica Center-Parsons/Archer
+                        <span class="you-are-here">You Are Here</span>
+                    </div>
+                    <div class="station-meta">Queens</div>
+                    <div class="transfers">
+                        <div class="transfer-badge route-J">J</div>
+                        <div class="transfer-badge route-Z">Z</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ellipsis Group -->
+            <div class="station ellipsis">
+                <div class="station-node">
+                    <div class="node-ellipsis">• • •</div>
+                </div>
+                <div class="station-label">
+                    <div class="ellipsis-label">8 stops</div>
+                </div>
+            </div>
+
+            <!-- Station 9: Crowded with Transfers and Plate -->
+            <div class="station">
+                <div class="station-node">
+                    <div class="node-crowded"></div>
+                </div>
+                <div class="station-label">
+                    <div class="station-name">Jackson Hts-Roosevelt Av</div>
+                    <div class="transfers">
+                        <div class="transfer-badge route-E">E</div>
+                        <div class="transfer-badge route-F">F</div>
+                        <div class="transfer-badge route-M">M</div>
+                        <div class="transfer-badge route-R">R</div>
+                        <div class="transfer-badge route-7">7</div>
+                    </div>
+                    <div class="crowd-chip high">
+                        <span class="people-icon">👥</span>
+                        <span class="people-count">215</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ellipsis Group -->
+            <div class="station ellipsis">
+                <div class="station-node">
+                    <div class="node-ellipsis">• • •</div>
+                </div>
+                <div class="station-label">
+                    <div class="ellipsis-label">6 stops</div>
+                </div>
+            </div>
+
+            <!-- Station 10: Crowded with Delay and Transfers with Plate -->
+            <div class="station">
+                <div class="station-node">
+                    <div class="node-crowded"></div>
+                </div>
+                <div class="station-label">
+                    <div class="station-name">
+                        42nd St-Port Authority
+                        <span class="alert-icon alert-delay" title="Delay: Signal problems ahead">⏱</span>
+                    </div>
+                    <div class="station-meta">Manhattan</div>
+                    <div class="transfers">
+                        <div class="transfer-badge route-1">1</div>
+                        <div class="transfer-badge route-2">2</div>
+                        <div class="transfer-badge route-3">3</div>
+                        <div class="transfer-badge route-7">7</div>
+                        <div class="transfer-badge route-N">N</div>
+                        <div class="transfer-badge route-Q">Q</div>
+                        <div class="transfer-badge route-R">R</div>
+                        <div class="transfer-badge route-W">W</div>
+                    </div>
+                    <div class="crowd-chip high">
+                        <span class="people-icon">👥</span>
+                        <span class="people-count">284</span>
+                        <span style="font-size: 9px; opacity: 0.7;">mezzanine</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ellipsis Group -->
+            <div class="station ellipsis">
+                <div class="station-node">
+                    <div class="node-ellipsis">• • •</div>
+                </div>
+                <div class="station-label">
+                    <div class="ellipsis-label">4 stops</div>
+                </div>
+            </div>
+
+            <!-- Station 11: Terminus - 168 St -->
+            <div class="station terminus">
+                <div class="station-node">
+                    <div class="node-terminus"></div>
+                </div>
+                <div class="station-label">
+                    <div class="station-name">168 St</div>
+                    <div class="station-meta">Manhattan • Terminus</div>
+                    <div class="transfers">
+                        <div class="transfer-badge route-1">1</div>
+                    </div>
+                    <div class="crowd-chip">
+                        <span class="people-icon">👥</span>
+                        <span class="people-count">52</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Strip -->
+        <div class="status-strip">
+            <div class="status-item">
+                <span class="status-label">Updated</span>
+                <span class="status-value" id="statusTime">7:14:36</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Alerts</span>
+                <span class="status-value status-alert">▲ <span id="alertCount">1</span></span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Crowd ≥</span>
+                <span class="status-value">120 ppl</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Collapsed</span>
+                <span class="status-value">… <span id="collapsedCount">19</span> stops</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Feed</span>
+                <span class="status-value status-ok" id="feedStatus">OK</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme Management
+        let currentTheme = 'dark';
+        let currentChroma = 'brand';
+
+        function toggleTheme(theme) {
+            currentTheme = theme;
+            const app = document.getElementById('app');
+            app.setAttribute('data-theme', theme);
+            
+            // Update button states
+            document.getElementById('darkBtn').classList.toggle('active', theme === 'dark');
+            document.getElementById('lightBtn').classList.toggle('active', theme === 'light');
+        }
+
+        function toggleChroma(chroma) {
+            currentChroma = chroma;
+            const app = document.getElementById('app');
+            app.setAttribute('data-chroma', chroma);
+            
+            // Update button states
+            document.getElementById('brandBtn').classList.toggle('active', chroma === 'brand');
+            document.getElementById('bwBtn').classList.toggle('active', chroma === 'bw');
+        }
+
+        // Initialize
+        toggleTheme('dark');
+        toggleChroma('brand');
+
+        // Simulate train arrival animation
+        let isArriving = false;
+        let countdown = 2;
+
+        function simulateArrival() {
+            const trainChip = document.getElementById('trainChip');
+            const trainEta = document.getElementById('trainEta');
+            const currentNode = document.getElementById('currentNode');
+            const header = document.querySelector('.header');
+
+            if (countdown > 0) {
+                trainEta.textContent = countdown + ' MIN';
+                countdown--;
+            } else if (!isArriving) {
+                // Trigger arrival state
+                isArriving = true;
+                trainEta.textContent = 'ARRIVING';
+                trainEta.classList.add('arriving');
+                trainChip.classList.add('arriving');
+                
+                // Trigger BOTH node flash AND header flash simultaneously
+                currentNode.classList.add('flash');
+                header.classList.add('flash');
+
+                // Reset after animation (7 flashes × 125ms = 875ms)
+                setTimeout(() => {
+                    currentNode.classList.remove('flash');
+                    header.classList.remove('flash');
+                }, 875);
+
+                // Reset countdown after 3 seconds
+                setTimeout(() => {
+                    isArriving = false;
+                    countdown = 5;
+                    trainEta.classList.remove('arriving');
+                    trainChip.classList.remove('arriving');
+                }, 3000);
+            }
+        }
+
+        // Run simulation every 5 seconds
+        setInterval(simulateArrival, 5000);
+
+        // Update status strip time
+        function updateStatusTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('statusTime').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        // Update time every second
+        setInterval(updateStatusTime, 1000);
+        updateStatusTime();
+
+        // Optional: Toggle arrival flash on click for demo
+        document.getElementById('currentNode').addEventListener('click', function() {
+            const header = document.querySelector('.header');
+            this.classList.add('flash');
+            header.classList.add('flash');
+            setTimeout(() => {
+                this.classList.remove('flash');
+                header.classList.remove('flash');
+            }, 875); // 7 flashes × 125ms = 875ms total
+        });
+    </script>
+</body>
+</html>
