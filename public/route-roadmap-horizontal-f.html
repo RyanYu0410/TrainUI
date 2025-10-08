@@ -1,0 +1,2089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizontal Route Map – F Line – Broadway-Lafayette St</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Grid & Spacing */
+            --baseline: 8px;
+            --node-spacing: 160px;
+            --label-offset: 22px;
+            --icon-gap: 6px;
+            
+            /* Route Lane */
+            --lane-height: 180px;
+            --spline-width: 3px;
+            
+            /* Node Sizes */
+            --node-regular: 13px;
+            --node-previous: 10px;
+            --node-current: 17px;
+            --node-terminus: 15px;
+            
+            /* Colors - Light Theme */
+            --bg: #F7F9FB;
+            --surface: #FFFFFF;
+            --text-primary: #0B0B0D;
+            --text-secondary: #3C4650;
+            --divider: #E6E9ED;
+            
+            /* Route Colors (F Line) */
+            --route-color: #FF6319;
+            --route-color-fade: rgba(255, 99, 25, 0.5);
+            --route-color-strong: rgba(255, 99, 25, 0.9);
+            
+            /* Status Colors */
+            --warning-fill: #FFD166;
+            --warning-stroke: #F08A24;
+            --flash-a: #000000;
+            --flash-b: #FFFFFF;
+            
+            /* Typography */
+            --font-family: 'Inter', 'Helvetica Neue', -apple-system, BlinkMacSystemFont, sans-serif;
+            --label-size: 17px;
+            --label-weight: 700;
+            --label-line-height: 1.35;
+        }
+
+        body.dark {
+            --bg: #0B0B0D;
+            --surface: #1C1F24;
+            --text-primary: #FFFFFF;
+            --text-secondary: #B9C0C7;
+            --divider: #1C1F24;
+        }
+
+        body.bw {
+            --route-color: #808080;
+            --route-color-fade: rgba(128, 128, 128, 0.5);
+            --route-color-strong: rgba(128, 128, 128, 0.9);
+            --warning-fill: #999999;
+            --warning-stroke: #666666;
+        }
+
+        body.bw.dark {
+            --route-color: #CCCCCC;
+            --route-color-fade: rgba(204, 204, 204, 0.5);
+            --route-color-strong: rgba(204, 204, 204, 0.9);
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--bg);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            transition: background 0.3s ease, color 0.3s ease;
+            margin: 0;
+            padding: 0;
+        }
+
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        body {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* FIXED HEADER */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--divider);
+            display: flex;
+            align-items: center;
+            padding: 0 calc(var(--baseline) * 3);
+            gap: calc(var(--baseline) * 2);
+            z-index: 100;
+            transition: background 0.3s ease;
+        }
+
+        @keyframes headerFlash {
+            0%, 100% { background: #000000; color: #FFFFFF; }
+            50% { background: #FFFFFF; color: #000000; }
+        }
+
+        .header.flash {
+            animation: headerFlash 800ms ease-in-out 3;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .header.flash {
+                animation-iteration-count: 1;
+            }
+        }
+
+        .route-badge {
+            width: 36px;
+            height: 36px;
+            background: var(--route-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .destination {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .current-train-chip {
+            background: var(--route-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .theme-toggles {
+            display: flex;
+            gap: calc(var(--baseline) * 1);
+            flex-shrink: 0;
+        }
+
+        .toggle-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--divider);
+            background: transparent;
+            color: var(--text-primary);
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-family);
+        }
+
+        .toggle-btn.active {
+            background: var(--route-color);
+            color: white;
+            border-color: var(--route-color);
+        }
+
+        #btn-test-train {
+            position: relative;
+            overflow: hidden;
+        }
+
+        #btn-test-train .train-emoji {
+            display: inline-block;
+        }
+
+        #btn-test-train .test-text {
+            display: inline-block;
+            margin-left: 4px;
+        }
+
+        #btn-test-train.arriving {
+            background: var(--route-color);
+            color: white;
+            border-color: var(--route-color);
+        }
+
+        #btn-test-train.arriving::before {
+            content: '🚇';
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            font-size: 18px;
+            animation: trainEntering 1.5s ease-out forwards;
+        }
+
+        #btn-test-train.departing::before {
+            content: '🚇';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            animation: trainDeparting 1.5s ease-in forwards;
+        }
+
+        @keyframes trainEntering {
+            0% {
+                right: -50px;
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            100% {
+                right: calc(50% - 9px);
+                opacity: 1;
+            }
+        }
+
+        @keyframes trainDeparting {
+            0% {
+                left: 50%;
+                opacity: 1;
+            }
+            80% {
+                opacity: 1;
+            }
+            100% {
+                left: -50px;
+                opacity: 0;
+            }
+        }
+
+        .toggle-btn:hover {
+            border-color: var(--route-color);
+        }
+
+        /* ROUTE CANVAS */
+        .route-canvas {
+            min-width: 100%;
+            height: 100vh;
+            padding: 0 calc(var(--baseline) * 6);
+            padding-top: 64px;
+            padding-bottom: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        .route-canvas::-webkit-scrollbar {
+            display: none;
+        }
+
+        .route-canvas {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .route-lane {
+            position: relative;
+            height: var(--lane-height);
+            min-width: max-content;
+        }
+
+        /* SVG SPLINE */
+        .spline-container {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: var(--spline-width);
+            transform: translateY(-50%);
+            overflow: visible;
+            z-index: 2;
+        }
+
+        .spline-svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .spline-path {
+            fill: none;
+            stroke: var(--route-color-strong);
+            stroke-width: 4px;
+            opacity: 0.7;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+        }
+
+        .spline-fade-start,
+        .spline-fade-end {
+            opacity: 0.2;
+        }
+
+        .spline-dashed {
+            stroke-dasharray: 6 4;
+        }
+
+        /* NODES */
+        .node-container {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .node {
+            width: var(--node-regular);
+            height: var(--node-regular);
+            border-radius: 50%;
+            background: var(--route-color);
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 2px rgba(255, 255, 255, 0.3);
+            border: 2px solid var(--route-color-strong);
+        }
+
+        .node.previous {
+            width: var(--node-previous);
+            height: var(--node-previous);
+            background: transparent;
+            border: 1.5px solid var(--route-color-fade);
+        }
+
+        .node.current {
+            width: var(--node-current);
+            height: var(--node-current);
+            background: var(--route-color);
+            border: 2px solid var(--route-color);
+            animation: arrivalFlash 800ms ease-in-out 3;
+        }
+
+        @keyframes arrivalFlash {
+            0%, 100% { background: var(--flash-a); border-color: var(--flash-a); }
+            50% { background: var(--flash-b); border-color: var(--flash-b); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .node.current {
+                animation: arrivalFlash 800ms ease-in-out 1;
+            }
+        }
+
+        .node.terminus {
+            width: var(--node-terminus);
+            height: var(--node-terminus);
+            border-radius: 2px;
+        }
+
+        .node.skipped {
+            background: transparent;
+            border: 1.5px solid var(--route-color-fade);
+            position: relative;
+        }
+
+        .node.skipped::after {
+            content: '×';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--route-color);
+            line-height: 1;
+        }
+
+        .node.overcrowded {
+            background: #FF4444 !important;
+            border: 2px solid #CC0000 !important;
+            box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.3), 0 2px 8px rgba(255, 68, 68, 0.4);
+            animation: nodePulse 2s infinite;
+        }
+
+        @keyframes nodePulse {
+            0%, 100% { 
+                box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.3), 0 2px 8px rgba(255, 68, 68, 0.4);
+            }
+            50% { 
+                box-shadow: 0 0 0 6px rgba(255, 68, 68, 0.5), 0 4px 12px rgba(255, 68, 68, 0.6);
+            }
+        }
+
+        /* Human figures around overcrowded nodes */
+        .human-figures {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .human-figure {
+            position: absolute;
+            font-size: 16px;
+            color: #FF4444;
+            animation: humanFloat 3s ease-in-out infinite;
+            opacity: 0.8;
+        }
+
+        .human-figure:nth-child(1) { 
+            top: -26px; 
+            left: -20px; 
+            animation-delay: 0s; 
+        }
+        .human-figure:nth-child(2) { 
+            top: -20px; 
+            right: -26px; 
+            animation-delay: 0.5s; 
+        }
+        .human-figure:nth-child(3) { 
+            bottom: -26px; 
+            left: -15px; 
+            animation-delay: 1s; 
+        }
+        .human-figure:nth-child(4) { 
+            bottom: -20px; 
+            right: -20px; 
+            animation-delay: 1.5s; 
+        }
+        .human-figure:nth-child(5) { 
+            top: -15px; 
+            left: 0px; 
+            animation-delay: 2s; 
+        }
+        .human-figure:nth-child(6) { 
+            bottom: -15px; 
+            right: 0px; 
+            animation-delay: 2.5s; 
+        }
+        .human-figure:nth-child(7) { 
+            top: -32px; 
+            left: 0px; 
+            animation-delay: 3s; 
+        }
+        .human-figure:nth-child(8) { 
+            bottom: -32px; 
+            right: 0px; 
+            animation-delay: 3.5s; 
+        }
+
+        @keyframes humanFloat {
+            0%, 100% { 
+                transform: translateY(0px) scale(1);
+                opacity: 0.8;
+            }
+            50% { 
+                transform: translateY(-3px) scale(1.1);
+                opacity: 1;
+            }
+        }
+
+        .node.ellipsis {
+            width: 32px;
+            height: 12px;
+            border-radius: 6px;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+        }
+
+        .ellipsis-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--route-color-fade);
+        }
+
+        /* CONNECTING LINES */
+        .connection-line {
+            position: absolute;
+            height: 4px;
+            background: var(--route-color);
+            opacity: 0.8;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1;
+            border-radius: 2px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .connection-line.top {
+            background: linear-gradient(90deg, var(--route-color) 0%, var(--route-color-fade) 100%);
+            opacity: 0.7;
+            height: 3px;
+        }
+
+        .connection-line.bottom {
+            background: linear-gradient(90deg, var(--route-color-fade) 0%, var(--route-color) 100%);
+            opacity: 0.7;
+            height: 3px;
+        }
+
+        .connection-line.both {
+            background: var(--route-color);
+            opacity: 0.9;
+            height: 4px;
+        }
+
+        .connection-line.ellipsis {
+            opacity: 0.4;
+            background: var(--route-color-fade);
+            height: 2px;
+            border-radius: 1px;
+        }
+
+        /* LABELS */
+        .station-label {
+            position: absolute;
+            font-size: var(--label-size);
+            font-weight: var(--label-weight);
+            line-height: var(--label-line-height);
+            color: var(--text-primary);
+            white-space: nowrap;
+            max-width: 200px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 0 1px rgba(255, 255, 255, 0.5);
+            letter-spacing: 0.01em;
+            z-index: 15;
+        }
+
+        .station-label.top {
+            bottom: calc(50% + var(--label-offset));
+            left: 50%;
+            transform-origin: bottom left;
+            transform: rotate(-25deg);
+        }
+
+        .station-label.bottom {
+            top: calc(50% + var(--label-offset));
+            right: 50%;
+            transform-origin: top right;
+            transform: rotate(-25deg);
+        }
+
+        .station-label.terminus {
+            font-variant: small-caps;
+            font-size: 17px;
+            letter-spacing: 0.02em;
+        }
+
+        .station-label.skipped {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .ellipsis-count {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding: 2px 6px;
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--divider);
+            margin-left: 4px;
+        }
+
+        /* ICONS & CHIPS */
+        .icon-warning {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            margin-left: var(--icon-gap);
+            background: var(--warning-fill);
+            border-radius: 3px;
+            border: 1px solid var(--warning-stroke);
+            font-size: 13px;
+            line-height: 1;
+            vertical-align: middle;
+        }
+
+        .transfer-badges {
+            display: inline-flex;
+            gap: 4px;
+            margin-left: var(--icon-gap);
+            vertical-align: middle;
+        }
+
+        .transfer-badge {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 700;
+            color: white;
+        }
+
+        /* MTA Colors */
+        .badge-A, .badge-C, .badge-E { background: #0039A6; }
+        .badge-B, .badge-D, .badge-F { background: #FF6319; }
+        .badge-M { background: #FF6319; }
+        .badge-L { background: #A7A9AC; }
+        .badge-N, .badge-Q, .badge-R, .badge-W { background: #FCCC0A; color: #000000; }
+        .badge-J, .badge-Z { background: #996633; }
+        .badge-6 { background: #00933C; }
+
+        /* BOTTOM STATUS STRIP */
+        .status-strip {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 48px;
+            background: var(--surface);
+            border-top: 1px solid var(--divider);
+            display: flex;
+            align-items: center;
+            padding: 0 calc(var(--baseline) * 3);
+            gap: calc(var(--baseline) * 3);
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            z-index: 100;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Alert Types */
+        .alert-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: var(--surface);
+            border: 1px solid var(--divider);
+        }
+
+        .alert-warning {
+            background: rgba(255, 209, 102, 0.15);
+            border-color: #FFD166;
+            color: #FFD166;
+        }
+
+        .alert-delay {
+            background: rgba(240, 138, 36, 0.15);
+            border-color: #F08A24;
+            color: #F08A24;
+        }
+
+        .alert-suspended {
+            background: rgba(231, 76, 60, 0.15);
+            border-color: #E74C3C;
+            color: #E74C3C;
+        }
+
+        .alert-planned {
+            background: rgba(45, 156, 219, 0.15);
+            border-color: #2D9CDB;
+            color: #2D9CDB;
+        }
+
+        .alert-icon {
+            font-size: 14px;
+        }
+
+        /* Station Alert Indicators */
+        .station-alert {
+            position: absolute;
+            top: -16px;
+            right: -8px;
+            height: 20px;
+            padding: 2px 4px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 20;
+            border: 2px solid var(--surface);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            width: 20px;
+            transition: width 0.3s ease, padding 0.3s ease, border-radius 0.3s ease, gap 0.3s ease;
+        }
+
+        .station-alert:hover {
+            transform: scale(1.05);
+        }
+
+        .station-alert .alert-text {
+            opacity: 0;
+            width: 0;
+            transition: opacity 0.2s ease, width 0.2s ease;
+        }
+
+        .station-alert.expanding {
+            width: auto;
+            padding: 2px 8px 2px 4px;
+            border-radius: 10px;
+            gap: 4px;
+            animation: alertExpand 3s ease-in-out forwards;
+        }
+
+        .station-alert.expanding .alert-text {
+            opacity: 1;
+            width: auto;
+        }
+
+        @keyframes alertExpand {
+            0% {
+                width: 20px;
+                padding: 2px 4px;
+                border-radius: 50%;
+                gap: 0;
+            }
+            5% {
+                width: 20px;
+                padding: 2px 4px;
+                border-radius: 50%;
+                gap: 0;
+            }
+            15% {
+                width: auto;
+                padding: 2px 8px 2px 4px;
+                border-radius: 10px;
+                gap: 4px;
+            }
+            85% {
+                width: auto;
+                padding: 2px 8px 2px 4px;
+                border-radius: 10px;
+                gap: 4px;
+            }
+            95% {
+                width: 20px;
+                padding: 2px 4px;
+                border-radius: 50%;
+                gap: 0;
+            }
+            100% {
+                width: 20px;
+                padding: 2px 4px;
+                border-radius: 50%;
+                gap: 0;
+            }
+        }
+
+        @keyframes alertTextShow {
+            0%, 10% {
+                opacity: 0;
+                max-width: 0;
+            }
+            20% {
+                opacity: 1;
+                max-width: 200px;
+            }
+            80% {
+                opacity: 1;
+                max-width: 200px;
+            }
+            90%, 100% {
+                opacity: 0;
+                max-width: 0;
+            }
+        }
+
+        .station-alert.expanding .alert-text {
+            animation: alertTextShow 3s ease-in-out forwards;
+        }
+
+        .station-alert.warning {
+            background: #FFD166;
+            color: #000000;
+        }
+
+        .station-alert.delay {
+            background: #F08A24;
+            color: #FFFFFF;
+        }
+
+        .station-alert.suspended {
+            background: #E74C3C;
+            color: #FFFFFF;
+        }
+
+        .station-alert.planned {
+            background: #2D9CDB;
+            color: #FFFFFF;
+        }
+
+        .station-alert .alert-icon {
+            font-size: 11px;
+            line-height: 1;
+        }
+
+        .station-alert .alert-text {
+            font-size: 10px;
+            line-height: 1;
+            font-weight: 600;
+        }
+
+        /* Station Folding - Ellipsis Groups */
+        .station-folded {
+            display: none;
+        }
+
+        .ellipsis-group {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: var(--lane-height);
+            z-index: 5;
+        }
+
+        .node-ellipsis {
+            width: 60px;
+            height: 24px;
+            background: var(--surface);
+            border: 1px solid var(--divider);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            letter-spacing: 2px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .ellipsis-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-style: italic;
+            background: var(--surface);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--divider);
+            white-space: nowrap;
+        }
+
+        .ellipsis-label.top {
+            top: calc(50% - 30px);
+        }
+
+        .ellipsis-label.bottom {
+            top: calc(50% + 30px);
+        }
+
+        .folded-line-block {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 4px;
+            background: var(--route-color-fade);
+            opacity: 1;
+            z-index: 1;
+            border-radius: 2px;
+        }
+
+        /* Train arrival animation */
+        .train-icon {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            background: #000000;
+            border: 2px solid #FFFFFF;
+            border-radius: 50%;
+            z-index: 100;
+            transition: left 1s linear;
+        }
+
+        .dark .train-icon {
+            background: #FFFFFF;
+            border: 2px solid #000000;
+        }
+
+        .train-icon::before,
+        .train-icon::after {
+            content: '‹';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.8);
+            pointer-events: none;
+            opacity: 0;
+            filter: blur(1px);
+            text-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .train-icon.arriving::before {
+            animation: chevronRipple1 1.2s ease-out infinite;
+        }
+
+        .train-icon.arriving::after {
+            animation: chevronRipple2 1.2s ease-out 0.4s infinite;
+        }
+
+        .dark .train-icon::before,
+        .dark .train-icon::after {
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes chevronRipple1 {
+            0% {
+                transform: translate(-50%, -50%) translateX(-10px) scale(0.6);
+                opacity: 0;
+                filter: blur(2px);
+            }
+            20% {
+                opacity: 0.9;
+                filter: blur(1px);
+            }
+            60% {
+                transform: translate(-50%, -50%) translateX(-60px) scale(1.2);
+                opacity: 0.5;
+                filter: blur(2px);
+            }
+            100% {
+                transform: translate(-50%, -50%) translateX(-100px) scale(1.5);
+                opacity: 0;
+                filter: blur(3px);
+            }
+        }
+
+        @keyframes chevronRipple2 {
+            0% {
+                transform: translate(-50%, -50%) translateX(-10px) scale(0.6);
+                opacity: 0;
+                filter: blur(2px);
+            }
+            20% {
+                opacity: 0.9;
+                filter: blur(1px);
+            }
+            60% {
+                transform: translate(-50%, -50%) translateX(-60px) scale(1.2);
+                opacity: 0.5;
+                filter: blur(2px);
+            }
+            100% {
+                transform: translate(-50%, -50%) translateX(-100px) scale(1.5);
+                opacity: 0;
+                filter: blur(3px);
+            }
+        }
+
+        .node.train-approaching {
+            animation: stationAlertArrive 1.5s ease-out forwards;
+        }
+
+        .node.train-departing {
+            animation: stationAlertDepart 1.5s ease-in forwards;
+        }
+
+        @keyframes stationAlertArrive {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 2px rgba(255, 255, 255, 0.3);
+            }
+            30% {
+                transform: scale(1.3);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 
+                            0 0 0 6px rgba(0, 0, 0, 0.6), 
+                            0 0 30px rgba(0, 0, 0, 0.4);
+            }
+            50% {
+                transform: scale(1.25);
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), 
+                            0 0 0 5px rgba(0, 0, 0, 0.7), 
+                            0 0 25px rgba(0, 0, 0, 0.5);
+            }
+            70% {
+                transform: scale(1.15);
+                box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3), 
+                            0 0 0 4px rgba(0, 0, 0, 0.6), 
+                            0 0 20px rgba(0, 0, 0, 0.4);
+            }
+            100% {
+                transform: scale(1.1);
+                box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3), 
+                            0 0 0 3px rgba(0, 0, 0, 0.5), 
+                            0 0 15px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        @keyframes stationAlertDepart {
+            0% {
+                transform: scale(1.1);
+                box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3), 
+                            0 0 0 3px rgba(0, 0, 0, 0.5), 
+                            0 0 15px rgba(0, 0, 0, 0.3);
+            }
+            30% {
+                transform: scale(1.2);
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), 
+                            0 0 0 5px rgba(0, 0, 0, 0.6), 
+                            0 0 25px rgba(0, 0, 0, 0.4);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 2px rgba(255, 255, 255, 0.3);
+            }
+        }
+
+        .dark .node.train-approaching {
+            animation: stationAlertArriveDark 1.5s ease-out forwards;
+        }
+
+        .dark .node.train-departing {
+            animation: stationAlertDepartDark 1.5s ease-in forwards;
+        }
+
+        @keyframes stationAlertArriveDark {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 2px 4px rgba(255, 255, 255, 0.2), 0 0 0 2px rgba(0, 0, 0, 0.3);
+            }
+            30% {
+                transform: scale(1.3);
+                box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4), 
+                            0 0 0 6px rgba(255, 255, 255, 0.6), 
+                            0 0 30px rgba(255, 255, 255, 0.4);
+            }
+            50% {
+                transform: scale(1.25);
+                box-shadow: 0 4px 10px rgba(255, 255, 255, 0.4), 
+                            0 0 0 5px rgba(255, 255, 255, 0.7), 
+                            0 0 25px rgba(255, 255, 255, 0.5);
+            }
+            70% {
+                transform: scale(1.15);
+                box-shadow: 0 3px 8px rgba(255, 255, 255, 0.3), 
+                            0 0 0 4px rgba(255, 255, 255, 0.6), 
+                            0 0 20px rgba(255, 255, 255, 0.4);
+            }
+            100% {
+                transform: scale(1.1);
+                box-shadow: 0 3px 6px rgba(255, 255, 255, 0.3), 
+                            0 0 0 3px rgba(255, 255, 255, 0.5), 
+                            0 0 15px rgba(255, 255, 255, 0.3);
+            }
+        }
+
+        @keyframes stationAlertDepartDark {
+            0% {
+                transform: scale(1.1);
+                box-shadow: 0 3px 6px rgba(255, 255, 255, 0.3), 
+                            0 0 0 3px rgba(255, 255, 255, 0.5), 
+                            0 0 15px rgba(255, 255, 255, 0.3);
+            }
+            30% {
+                transform: scale(1.2);
+                box-shadow: 0 4px 10px rgba(255, 255, 255, 0.4), 
+                            0 0 0 5px rgba(255, 255, 255, 0.6), 
+                            0 0 25px rgba(255, 255, 255, 0.4);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 2px 4px rgba(255, 255, 255, 0.2), 0 0 0 2px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-separator {
+            width: 1px;
+            height: 16px;
+            background: var(--divider);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .route-canvas {
+                padding: calc(var(--baseline) * 4);
+            }
+            :root {
+                --node-spacing: 120px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            :root {
+                --node-spacing: 100px;
+                --label-offset: 14px;
+            }
+        }
+
+        .node-container:focus-visible {
+            outline: 2px solid var(--route-color);
+            outline-offset: 4px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="">
+    <!-- STICKY HEADER -->
+    <header class="header">
+        <div class="route-badge">F</div>
+        <div class="destination">Coney Island → Jamaica-179 St</div>
+        <div class="current-train-chip">Train #F-125</div>
+        <button class="toggle-btn" id="btn-fold" style="margin-left: 12px;">⋯ Fold</button>
+        <button class="toggle-btn" id="btn-test-train" style="margin-left: 8px;">
+            <span class="train-emoji">🚇</span>
+            <span class="test-text">Test</span>
+        </button>
+        <button class="toggle-btn" id="btn-hide" style="margin-left: 8px;">👁 Hide</button>
+        <div class="theme-toggles" style="display: none;">
+            <button class="toggle-btn active" id="btn-light">Light</button>
+            <button class="toggle-btn" id="btn-dark">Dark</button>
+            <button class="toggle-btn active" id="btn-color">Color</button>
+            <button class="toggle-btn" id="btn-bw">B/W</button>
+        </div>
+    </header>
+
+    <!-- ROUTE CANVAS -->
+    <div class="route-canvas">
+        <div class="route-lane" id="route-lane">
+            <!-- SVG Spline will be rendered here -->
+            <svg class="spline-svg" id="spline-svg" style="position: absolute; top: 50%; transform: translateY(-50%); left: 0; width: 100%; height: 60px; overflow: visible;">
+                <defs>
+                    <linearGradient id="grad-left" x1="100%" y1="0%" x2="0%" y2="0%">
+                        <stop offset="0%" stop-color="var(--route-color-strong)" stop-opacity="0.3" />
+                        <stop offset="100%" stop-color="var(--route-color-strong)" stop-opacity="0" />
+                    </linearGradient>
+                    <linearGradient id="grad-right" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="var(--route-color-strong)" stop-opacity="0.3" />
+                        <stop offset="100%" stop-color="var(--route-color-strong)" stop-opacity="0" />
+                    </linearGradient>
+                </defs>
+                <g id="spline-baseline"></g>
+                <g id="spline-overlays"></g>
+                <g id="spline-arrows"></g>
+            </svg>
+
+            <!-- Nodes will be positioned here -->
+        </div>
+    </div>
+
+    <!-- BOTTOM STATUS STRIP -->
+    <footer class="status-strip">
+        <div class="status-item" id="lastUpdated">Updated 14:46:34</div>
+        <div class="status-separator"></div>
+        <div class="status-item" id="alertCount">Alerts ▲ 0</div>
+        <div class="status-separator"></div>
+        <div class="status-item" id="crowdInfo">Crowd ≥ 120 ppl</div>
+        <div class="status-separator"></div>
+        <div class="status-item" id="feedStatus">Feed OK</div>
+    </footer>
+
+    <script>
+        // Theme Toggle Logic
+        const btnLight = document.getElementById('btn-light');
+        const btnDark = document.getElementById('btn-dark');
+        const btnColor = document.getElementById('btn-color');
+        const btnBW = document.getElementById('btn-bw');
+        const btnFold = document.getElementById('btn-fold');
+        const btnTestTrain = document.getElementById('btn-test-train');
+        const btnHide = document.getElementById('btn-hide');
+        const themeToggles = document.querySelector('.theme-toggles');
+        const body = document.body;
+        
+        let isFolded = false;
+        let controlsHidden = true;
+
+        btnLight.addEventListener('click', () => {
+            body.classList.remove('dark');
+            btnLight.classList.add('active');
+            btnDark.classList.remove('active');
+        });
+
+        btnDark.addEventListener('click', () => {
+            body.classList.add('dark');
+            btnDark.classList.add('active');
+            btnLight.classList.remove('active');
+        });
+
+        btnColor.addEventListener('click', () => {
+            body.classList.remove('bw');
+            btnColor.classList.add('active');
+            btnBW.classList.remove('active');
+        });
+
+        btnBW.addEventListener('click', () => {
+            body.classList.add('bw');
+            btnBW.classList.add('active');
+            btnColor.classList.remove('active');
+        });
+
+        btnHide.addEventListener('click', () => {
+            controlsHidden = !controlsHidden;
+            
+            if (controlsHidden) {
+                themeToggles.style.display = 'none';
+                btnHide.textContent = '👁 Show';
+            } else {
+                themeToggles.style.display = 'flex';
+                btnHide.textContent = '👁 Hide';
+            }
+        });
+
+        btnFold.addEventListener('click', () => {
+            isFolded = !isFolded;
+            btnFold.textContent = isFolded ? '⋯ Unfold' : '⋯ Fold';
+            btnFold.classList.toggle('active', isFolded);
+            updateStationFolding();
+        });
+
+        btnTestTrain.addEventListener('click', () => {
+            const testStationIndex = 10; // Broadway-Lafayette St
+            const stationContainers = document.querySelectorAll('.node-container');
+            const targetStationContainer = stationContainers[testStationIndex];
+            const targetNode = targetStationContainer?.querySelector('.node');
+            
+            btnTestTrain.classList.add('arriving');
+            
+            setTimeout(() => {
+                btnTestTrain.classList.remove('arriving');
+                
+                if (targetNode) {
+                    targetNode.classList.remove('train-approaching', 'train-departing');
+                    targetNode.classList.add('train-approaching');
+                    
+                    const alerts = targetStationContainer.querySelectorAll('.station-alert');
+                    alerts.forEach(alert => {
+                        alert.classList.remove('expanding');
+                        void alert.offsetWidth;
+                        alert.classList.add('expanding');
+                    });
+                }
+                
+                setTimeout(() => {
+                    if (targetNode) {
+                        targetNode.classList.remove('train-approaching');
+                        targetNode.classList.add('train-departing');
+                    }
+                    
+                    setTimeout(() => {
+                        btnTestTrain.classList.add('departing');
+                        
+                        setTimeout(() => {
+                            btnTestTrain.classList.remove('departing');
+                            
+                            if (targetNode) {
+                                targetNode.classList.remove('train-departing');
+                            }
+                        }, 1500);
+                    }, 0);
+                }, 1500);
+            }, 1500);
+        });
+
+        // F Line Station Data (centered around Broadway-Lafayette St)
+        const fLineStations = [
+            { id: 'D25', name: 'Coney Island–Stillwell Av', type: 'terminus', position: 'top', transfers: ['D', 'N', 'Q'], crowd: 320, alerts: [] },
+            { id: 'D24', name: 'W 8th St–NY Aquarium', type: 'regular', position: 'bottom', transfers: [], crowd: 180, alerts: [] },
+            { id: 'D22', name: 'Avenue X', type: 'regular', position: 'top', transfers: [], crowd: 140, alerts: [] },
+            { id: 'D21', name: 'Neptune Avenue', type: 'regular', position: 'bottom', transfers: [], crowd: 120, alerts: [] },
+            { id: 'D20', name: 'Avenue U', type: 'regular', position: 'top', transfers: [], crowd: 130, alerts: [] },
+            { id: 'D19', name: 'Kings Highway', type: 'regular', position: 'bottom', transfers: [], crowd: 150, alerts: [] },
+            { id: 'D18', name: 'Avenue N', type: 'regular', position: 'top', transfers: [], crowd: 110, alerts: [] },
+            { id: 'D17', name: 'Avenue P', type: 'regular', position: 'bottom', transfers: [], crowd: 100, alerts: [] },
+            { id: 'D16', name: 'Bay Parkway', type: 'regular', position: 'top', transfers: [], crowd: 140, alerts: [] },
+            { id: 'D15', name: '18th Avenue', type: 'regular', position: 'bottom', transfers: [], crowd: 120, alerts: [] },
+            { id: 'D14', name: 'Ditmas Avenue', type: 'regular', position: 'top', transfers: [], crowd: 95, alerts: [] },
+            { id: 'D13', name: 'Fort Hamilton Parkway', type: 'regular', position: 'bottom', transfers: [], crowd: 130, alerts: [] },
+            { id: 'D12', name: '15th St–Prospect Park', type: 'regular', position: 'top', transfers: [], crowd: 180, alerts: [] },
+            { id: 'G08', name: '4th Avenue', type: 'regular', position: 'bottom', transfers: ['R'], crowd: 200, alerts: [] },
+            { id: 'F18', name: '7th Avenue', type: 'regular', position: 'top', transfers: [], crowd: 220, alerts: [] },
+            { id: 'F20', name: 'Bergen Street', type: 'regular', position: 'bottom', transfers: [], crowd: 160, alerts: [] },
+            { id: 'F21', name: 'Carroll Street', type: 'regular', position: 'top', transfers: [], crowd: 140, alerts: [] },
+            { id: 'A41', name: 'Jay St–MetroTech', type: 'regular', position: 'bottom', transfers: ['A', 'C', 'R'], crowd: 380, alerts: ['warning'] },
+            { id: 'F23', name: 'York Street', type: 'regular', position: 'top', transfers: [], crowd: 190, alerts: [] },
+            { id: 'A25', name: '2nd Avenue', type: 'regular', position: 'bottom', transfers: [], crowd: 240, alerts: [] },
+            { id: 'D15', name: 'Broadway-Lafayette St', type: 'regular', position: 'top', transfers: ['B', 'D', 'M', '6'], crowd: 450, alerts: ['delay'] },
+            { id: 'A28', name: 'W 4th St', type: 'regular', position: 'bottom', transfers: ['A', 'C', 'E'], crowd: 520, alerts: [] },
+            { id: 'D16', name: '14th Street', type: 'regular', position: 'top', transfers: ['L'], crowd: 380, alerts: [] },
+            { id: 'D17', name: '23rd Street', type: 'regular', position: 'bottom', transfers: [], crowd: 290, alerts: [] },
+            { id: 'D18', name: '34th St–Herald Sq', type: 'regular', position: 'top', transfers: ['B', 'D', 'M', 'N', 'Q', 'R', 'W'], crowd: 580, alerts: [] },
+            { id: 'D19', name: '42nd St–Bryant Park', type: 'regular', position: 'bottom', transfers: ['7'], crowd: 420, alerts: [] },
+            { id: 'D20', name: '47–50th Sts Rockefeller Center', type: 'regular', position: 'top', transfers: ['B', 'D', 'M'], crowd: 390, alerts: [] },
+            { id: 'D21', name: '57th Street', type: 'regular', position: 'bottom', transfers: ['N', 'Q', 'R', 'W'], crowd: 340, alerts: [] },
+            { id: 'D22', name: 'Lexington Av/63rd St', type: 'regular', position: 'top', transfers: ['Q'], crowd: 310, alerts: [] },
+            { id: 'B06', name: 'Roosevelt Island', type: 'regular', position: 'bottom', transfers: [], crowd: 180, alerts: ['planned'] },
+            { id: 'B08', name: '21st St–Queensbridge', type: 'regular', position: 'top', transfers: [], crowd: 150, alerts: [] },
+            { id: 'G21', name: 'Queens Plaza', type: 'regular', position: 'bottom', transfers: ['E', 'M', 'R'], crowd: 280, alerts: [] },
+            { id: 'G22', name: 'Court Sq–23rd St', type: 'regular', position: 'top', transfers: ['7', 'E', 'M'], crowd: 250, alerts: [] },
+            { id: 'G24', name: 'Jackson Hts–Roosevelt Av', type: 'terminus', position: 'bottom', transfers: ['7', 'E', 'M', 'R'], crowd: 450, alerts: [] }
+        ];
+
+        // Real-time data state
+        let realtimeData = {
+            arrivals: [],
+            currentTrain: null,
+            lastUpdate: null,
+            alerts: []
+        };
+
+        // Fetch real-time F line data
+        async function fetchRealtimeData() {
+            try {
+                console.log('Fetching real-time F line data...');
+                const response = await fetch('/api/f-arrivals');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Received data:', data);
+                
+                realtimeData.arrivals = data.arrivals || [];
+                realtimeData.lastUpdate = new Date().toLocaleTimeString();
+                
+                console.log(`Found ${realtimeData.arrivals.length} arrivals`);
+                
+                // Find current train (closest arrival)
+                const now = Date.now();
+                const upcomingArrivals = realtimeData.arrivals.filter(arrival => {
+                    const arrivalTime = new Date(arrival.epoch * 1000);
+                    return arrivalTime > now;
+                });
+                
+                console.log(`Found ${upcomingArrivals.length} upcoming arrivals`);
+                
+                if (upcomingArrivals.length > 0) {
+                    const closestArrival = upcomingArrivals.reduce((closest, current) => {
+                        return current.epoch < closest.epoch ? current : closest;
+                    });
+                    realtimeData.currentTrain = closestArrival;
+                    console.log('Current train:', closestArrival);
+                } else {
+                    realtimeData.currentTrain = null;
+                    console.log('No current train found');
+                }
+                
+                updateDisplay();
+            } catch (error) {
+                console.error('Error fetching real-time data:', error);
+                realtimeData.lastUpdate = 'Error loading data';
+                realtimeData.arrivals = [];
+                realtimeData.currentTrain = null;
+                updateDisplay();
+            }
+        }
+
+        // Update display with real-time data
+        function updateDisplay() {
+            // Update header with current train info
+            const currentTrainChip = document.querySelector('.current-train-chip');
+            if (realtimeData.currentTrain) {
+                const trainId = realtimeData.currentTrain.tripId || 'F-XXX';
+                const arrivalTime = realtimeData.currentTrain.arrivalTime || 'Now';
+                currentTrainChip.textContent = `${trainId} • ${arrivalTime}`;
+            } else {
+                currentTrainChip.textContent = 'No Active Train';
+            }
+
+            // Update status strip
+            updateStatusStrip();
+
+            // Update station states based on real-time data
+            updateStationStates();
+        }
+
+        // Update station states based on real-time arrivals
+        function updateStationStates() {
+            const stationContainers = document.querySelectorAll('.node-container');
+            
+            stationContainers.forEach((container, index) => {
+                const station = fLineStations[index];
+                if (!station) return;
+
+                const node = container.querySelector('.node');
+                const label = container.querySelector('.station-label');
+                
+                if (!node || !label) return;
+
+                // Reset classes
+                node.className = `node ${station.type}`;
+                
+                // Add overcrowded class if station has more than 2 figures
+                const figureCount = Math.min(8, Math.max(1, Math.floor(Math.pow(station.crowd / 30, 0.7))));
+                if (figureCount > 2) {
+                    node.classList.add('overcrowded');
+                }
+                
+                // Find arrivals for this station
+                const stationArrivals = realtimeData.arrivals.filter(arrival => {
+                    if (!arrival.stationName) return false;
+                    
+                    // Exact match
+                    if (arrival.stationName === station.name) return true;
+                    
+                    // Match by stop ID
+                    if (arrival.stopId && arrival.stopId.replace(/[NS]$/, '') === station.id) return true;
+                    
+                    // Partial name match
+                    const stationKey = station.name.split('–')[0].split('-')[0].trim();
+                    const arrivalKey = arrival.stationName.split('–')[0].split('-')[0].trim();
+                    if (stationKey === arrivalKey) return true;
+                    
+                    return false;
+                });
+
+                if (stationArrivals.length > 0) {
+                    // Sort by arrival time and get the next one
+                    const sortedArrivals = stationArrivals.sort((a, b) => a.epoch - b.epoch);
+                    const nextArrival = sortedArrivals[0];
+                    const arrivalTime = new Date(nextArrival.epoch * 1000);
+                    const now = Date.now();
+                    const timeDiff = arrivalTime - now;
+
+                    // Update node state based on arrival time
+                    if (timeDiff < 60000) { // Less than 1 minute
+                        node.classList.add('current');
+                    } else if (timeDiff < 300000) { // Less than 5 minutes
+                        node.classList.add('regular');
+                    } else {
+                        node.classList.add('previous');
+                    }
+
+                    // Update human figures based on real-time data
+                    let crowdValue = null;
+                    if (nextArrival.ridership && nextArrival.ridership.averageRidership > 0) {
+                        crowdValue = nextArrival.ridership.averageRidership;
+                    } else if (station.crowd) {
+                        crowdValue = station.crowd;
+                    }
+                    
+                    if (crowdValue && crowdValue > 0) {
+                        const nodeContainer = container;
+                        let humanFigures = nodeContainer.querySelector('.human-figures');
+                        
+                        if (!humanFigures) {
+                            humanFigures = document.createElement('div');
+                            humanFigures.className = 'human-figures';
+                            nodeContainer.appendChild(humanFigures);
+                        }
+                        
+                        const figureCount = Math.min(8, Math.max(1, Math.floor(Math.pow(crowdValue / 30, 0.7))));
+                        humanFigures.innerHTML = '';
+                        for (let i = 0; i < figureCount; i++) {
+                            const human = document.createElement('div');
+                            human.className = 'human-figure';
+                            human.innerHTML = '👤';
+                            humanFigures.appendChild(human);
+                        }
+                        
+                        if (figureCount > 2) {
+                            node.classList.add('overcrowded');
+                        } else {
+                            node.classList.remove('overcrowded');
+                        }
+                    }
+                } else {
+                    node.classList.add('regular');
+                }
+            });
+
+            // Flash header if there's a current train
+            const hasCurrent = document.querySelector('.node.current');
+            const header = document.querySelector('.header');
+            if (hasCurrent) {
+                header.classList.add('flash');
+            } else {
+                header.classList.remove('flash');
+            }
+        }
+
+        // Render Stations
+        const routeLane = document.getElementById('route-lane');
+        const nodeSpacing = 160;
+        let xPosition = 80;
+        const nodePositions = [];
+
+        fLineStations.forEach((station, index) => {
+            const nodeContainer = document.createElement('div');
+            nodeContainer.className = 'node-container';
+            nodeContainer.style.left = `${xPosition}px`;
+            nodeContainer.tabIndex = 0;
+
+            const node = document.createElement('div');
+            node.className = `node ${station.type}`;
+            nodeContainer.appendChild(node);
+
+            // Add human figures based on crowd
+            if (station.crowd && station.crowd > 0) {
+                const humanFigures = document.createElement('div');
+                humanFigures.className = 'human-figures';
+                
+                const figureCount = Math.min(8, Math.max(1, Math.floor(Math.pow(station.crowd / 30, 0.7))));
+                for (let i = 0; i < figureCount; i++) {
+                    const human = document.createElement('div');
+                    human.className = 'human-figure';
+                    human.innerHTML = '👤';
+                    humanFigures.appendChild(human);
+                }
+                
+                nodeContainer.appendChild(humanFigures);
+            }
+
+            // Add alert indicators
+            if (station.alerts && station.alerts.length > 0) {
+                station.alerts.forEach(alertType => {
+                    const alertIndicator = document.createElement('div');
+                    alertIndicator.className = `station-alert ${alertType}`;
+                    
+                    const iconSpan = document.createElement('span');
+                    iconSpan.className = 'alert-icon';
+                    
+                    let alertText = '';
+                    let iconText = '';
+                    switch(alertType) {
+                        case 'warning':
+                            alertText = 'Service Warning';
+                            iconText = '⚠';
+                            break;
+                        case 'delay':
+                            alertText = 'Delays Expected';
+                            iconText = '⏱';
+                            break;
+                        case 'suspended':
+                            alertText = 'Service Suspended';
+                            iconText = '✕';
+                            break;
+                        case 'planned':
+                            alertText = 'Planned Work';
+                            iconText = 'ⓘ';
+                            break;
+                        default:
+                            alertText = 'Alert';
+                            iconText = '!';
+                    }
+                    iconSpan.textContent = iconText;
+                    alertIndicator.appendChild(iconSpan);
+                    
+                    const textSpan = document.createElement('span');
+                    textSpan.className = 'alert-text';
+                    textSpan.textContent = alertText;
+                    alertIndicator.appendChild(textSpan);
+                    
+                    nodeContainer.appendChild(alertIndicator);
+                });
+            }
+
+            // Station Label
+            const label = document.createElement('div');
+            label.className = `station-label ${station.position}`;
+            if (station.type === 'terminus') label.classList.add('terminus');
+
+            let labelHTML = station.name;
+
+            // Add transfers
+            if (station.transfers && station.transfers.length > 0) {
+                labelHTML += '<span class="transfer-badges">';
+                station.transfers.forEach(line => {
+                    labelHTML += `<span class="transfer-badge badge-${line}">${line}</span>`;
+                });
+                labelHTML += '</span>';
+            }
+
+            label.innerHTML = labelHTML;
+            nodeContainer.appendChild(label);
+
+            routeLane.appendChild(nodeContainer);
+            nodePositions.push(xPosition);
+            xPosition += nodeSpacing;
+        });
+
+        // Add connecting lines
+        for (let i = 0; i < fLineStations.length - 1; i++) {
+            const currentStation = fLineStations[i];
+            const nextStation = fLineStations[i + 1];
+            const currentPos = nodePositions[i];
+            const nextPos = nodePositions[i + 1];
+            const lineWidth = nextPos - currentPos;
+
+            const connectionLine = document.createElement('div');
+            connectionLine.className = 'connection-line';
+            connectionLine.style.left = `${currentPos}px`;
+            connectionLine.style.width = `${lineWidth}px`;
+            connectionLine.dataset.index = String(i);
+
+            if (currentStation.position === 'top' && nextStation.position === 'top') {
+                connectionLine.classList.add('top');
+            } else if (currentStation.position === 'bottom' && nextStation.position === 'bottom') {
+                connectionLine.classList.add('bottom');
+            } else {
+                connectionLine.classList.add('both');
+            }
+
+            routeLane.appendChild(connectionLine);
+        }
+
+        routeLane.style.width = `${xPosition + 80}px`;
+
+        // Draw spline
+        const splineSvg = document.getElementById('spline-svg');
+        const baselineGroup = splineSvg.querySelector('#spline-baseline');
+        const overlaysGroup = splineSvg.querySelector('#spline-overlays');
+        const centerY = 30;
+
+        function makeLine(x1, x2, opacity, dashed = false) {
+            const ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            ln.setAttribute('x1', x1);
+            ln.setAttribute('y1', centerY);
+            ln.setAttribute('x2', x2);
+            ln.setAttribute('y2', centerY);
+            ln.setAttribute('stroke', getComputedStyle(document.documentElement).getPropertyValue('--route-color-strong') || 'rgba(255,99,25,0.9)');
+            ln.setAttribute('stroke-width', 4);
+            ln.setAttribute('opacity', opacity);
+            ln.setAttribute('filter', 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))');
+            if (dashed) ln.setAttribute('stroke-dasharray', '8 6');
+            return ln;
+        }
+
+        for (let i = 1; i < nodePositions.length; i++) {
+            const x1 = nodePositions[i - 1];
+            const x2 = nodePositions[i];
+            baselineGroup.appendChild(makeLine(x1, x2, 0.5));
+        }
+
+        nodePositions.forEach(x => {
+            overlaysGroup.appendChild(makeLine(x - 10, x + 10, 1));
+        });
+
+        const fadeExtent = 60;
+        const leftFade = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        leftFade.setAttribute('x', String(nodePositions[0] - fadeExtent));
+        leftFade.setAttribute('y', String(centerY - 1.5));
+        leftFade.setAttribute('width', String(fadeExtent));
+        leftFade.setAttribute('height', '3');
+        leftFade.setAttribute('fill', 'url(#grad-left)');
+        overlaysGroup.appendChild(leftFade);
+
+        const rightFade = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rightFade.setAttribute('x', String(nodePositions[nodePositions.length - 1]));
+        rightFade.setAttribute('y', String(centerY - 1.5));
+        rightFade.setAttribute('width', String(fadeExtent));
+        rightFade.setAttribute('height', '3');
+        rightFade.setAttribute('fill', 'url(#grad-right)');
+        overlaysGroup.appendChild(rightFade);
+
+        // Update status strip
+        function updateStatusStrip() {
+            const statusItems = document.querySelectorAll('.status-item');
+            
+            // Update last updated time
+            if (statusItems[0]) {
+                statusItems[0].textContent = `Updated ${realtimeData.lastUpdate || new Date().toLocaleTimeString()}`;
+            }
+
+            // Update alert count (placeholder for now)
+            if (statusItems[1]) {
+                statusItems[1].innerHTML = 'Alerts ▲ 0';
+            }
+
+            // Update crowd info
+            if (statusItems[2]) {
+                const overcrowdedStations = fLineStations.filter(station => station.crowd >= 120).length;
+                if (isFolded) {
+                    const foldedCount = fLineStations.filter(station => !isImportantStation(station)).length;
+                    statusItems[2].textContent = `Crowd ≥ 120 ppl (${overcrowdedStations} stations) • Folded: ${foldedCount}`;
+                } else {
+                    statusItems[2].textContent = `Crowd ≥ 120 ppl (${overcrowdedStations} stations)`;
+                }
+            }
+
+            // Update feed status
+            if (statusItems[3]) {
+                if (realtimeData.arrivals && realtimeData.arrivals.length > 0) {
+                    statusItems[3].textContent = 'Feed OK';
+                    statusItems[3].style.color = '#FF6319'; // F line orange
+                } else {
+                    statusItems[3].textContent = 'Connecting...';
+                    statusItems[3].style.color = '#FFD166';
+                }
+            }
+        }
+
+        // Check if station is important (should not be folded)
+        function isImportantStation(station) {
+            // Keep terminuses
+            if (station.type === 'terminus') return true;
+            
+            // Keep stations with alerts
+            if (station.alerts && station.alerts.length > 0) return true;
+            
+            // Keep very crowded stations (>200 people for F line)
+            if (station.crowd > 200) return true;
+            
+            // Keep stations with major transfers (more than 2 lines)
+            if (station.transfers && station.transfers.length >= 2) return true;
+            
+            // Keep Broadway-Lafayette St (our center station)
+            if (station.name === 'Broadway-Lafayette St') return true;
+            
+            // Keep major hubs
+            const majorHubs = ['W 4th St', '34th St–Herald Sq', 'Jay St–MetroTech', 'Jackson Hts–Roosevelt Av', 'Coney Island–Stillwell Av'];
+            if (majorHubs.includes(station.name)) return true;
+            
+            return false;
+        }
+
+        // Redraw spline based on visible stations
+        function redrawSpline() {
+            console.log('Redrawing spline...');
+            const splineSvg = document.getElementById('spline-svg');
+            const baselineGroup = splineSvg.querySelector('#spline-baseline');
+            const overlaysGroup = splineSvg.querySelector('#spline-overlays');
+            const centerY = 30;
+            
+            // Clear existing spline elements
+            baselineGroup.innerHTML = '';
+            overlaysGroup.innerHTML = '';
+            
+            // Helper to create a line
+            function makeLine(x1, x2, opacity, dashed = false) {
+                const ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                ln.setAttribute('x1', x1);
+                ln.setAttribute('y1', centerY);
+                ln.setAttribute('x2', x2);
+                ln.setAttribute('y2', centerY);
+                ln.setAttribute('stroke', getComputedStyle(document.documentElement).getPropertyValue('--route-color-strong') || 'rgba(255,99,25,0.9)');
+                ln.setAttribute('stroke-width', 4);
+                ln.setAttribute('opacity', opacity);
+                ln.setAttribute('filter', 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))');
+                if (dashed) ln.setAttribute('stroke-dasharray', '8 6');
+                return ln;
+            }
+            
+            // Calculate new positions for visible stations
+            const visiblePositions = [];
+            const visibleIndices = [];
+            const stationContainers = document.querySelectorAll('.node-container');
+            
+            // First pass: collect visible station indices
+            stationContainers.forEach((container, index) => {
+                if (!container.classList.contains('station-folded')) {
+                    visibleIndices.push(index);
+                }
+            });
+            
+            // Second pass: calculate positions with adjusted spacing
+            let currentX = 80;
+            for (let i = 0; i < visibleIndices.length; i++) {
+                visiblePositions.push(currentX);
+                
+                if (i < visibleIndices.length - 1) {
+                    const gap = visibleIndices[i + 1] - visibleIndices[i];
+                    if (gap === 1) {
+                        currentX += 160; // Consecutive stations
+                    } else {
+                        currentX += 160 + (gap * 5); // Gap with folded stations
+                    }
+                }
+            }
+            
+            // Reposition visible station containers
+            stationContainers.forEach((container, index) => {
+                if (!container.classList.contains('station-folded')) {
+                    const visibleIndex = visibleIndices.indexOf(index);
+                    if (visibleIndex !== -1) {
+                        container.style.left = `${visiblePositions[visibleIndex]}px`;
+                        
+                        // Adjust top/bottom position for alternating pattern
+                        const label = container.querySelector('.station-label');
+                        if (label) {
+                            label.classList.remove('top', 'bottom');
+                            const newPosition = visibleIndex % 2 === 0 ? 'top' : 'bottom';
+                            label.classList.add(newPosition);
+                        }
+                    }
+                }
+            });
+            
+            // Remove old connection lines
+            const oldConnectionLines = document.querySelectorAll('.connection-line');
+            oldConnectionLines.forEach(line => line.remove());
+            
+            // Create new connection lines
+            const routeLane = document.querySelector('.route-lane');
+            for (let i = 1; i < visiblePositions.length; i++) {
+                const prevIndex = visibleIndices[i - 1];
+                const currIndex = visibleIndices[i];
+                const gap = currIndex - prevIndex;
+                
+                if (gap === 1) {
+                    const currentPos = visiblePositions[i - 1];
+                    const nextPos = visiblePositions[i];
+                    const lineWidth = nextPos - currentPos;
+                    
+                    const connectionLine = document.createElement('div');
+                    connectionLine.className = 'connection-line';
+                    connectionLine.style.left = `${currentPos}px`;
+                    connectionLine.style.width = `${lineWidth}px`;
+                    connectionLine.dataset.index = String(prevIndex);
+                    
+                    const prevVisibleIndex = i - 1;
+                    const currVisibleIndex = i;
+                    const prevPosition = prevVisibleIndex % 2 === 0 ? 'top' : 'bottom';
+                    const currPosition = currVisibleIndex % 2 === 0 ? 'top' : 'bottom';
+                    
+                    if (prevPosition === 'top' && currPosition === 'top') {
+                        connectionLine.classList.add('top');
+                    } else if (prevPosition === 'bottom' && currPosition === 'bottom') {
+                        connectionLine.classList.add('bottom');
+                    } else {
+                        connectionLine.classList.add('both');
+                    }
+                    
+                    routeLane.appendChild(connectionLine);
+                }
+            }
+            
+            // Draw baseline segments between visible nodes
+            for (let i = 1; i < visiblePositions.length; i++) {
+                const prevIndex = visibleIndices[i - 1];
+                const currIndex = visibleIndices[i];
+                const gap = currIndex - prevIndex;
+                
+                if (gap === 1) {
+                    const x1 = visiblePositions[i - 1];
+                    const x2 = visiblePositions[i];
+                    baselineGroup.appendChild(makeLine(x1, x2, 0.5));
+                }
+            }
+            
+            // Near-node bright ramps
+            visiblePositions.forEach(x => {
+                overlaysGroup.appendChild(makeLine(x - 10, x + 10, 1));
+            });
+            
+            // Terminus fades
+            if (visiblePositions.length > 0) {
+                const fadeExtent = 60;
+                
+                const leftFade = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                leftFade.setAttribute('x', String(visiblePositions[0] - fadeExtent));
+                leftFade.setAttribute('y', String(centerY - 1.5));
+                leftFade.setAttribute('width', String(fadeExtent));
+                leftFade.setAttribute('height', '3');
+                leftFade.setAttribute('fill', 'url(#grad-left)');
+                overlaysGroup.appendChild(leftFade);
+                
+                const rightFade = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rightFade.setAttribute('x', String(visiblePositions[visiblePositions.length - 1]));
+                rightFade.setAttribute('y', String(centerY - 1.5));
+                rightFade.setAttribute('width', String(fadeExtent));
+                rightFade.setAttribute('height', '3');
+                rightFade.setAttribute('fill', 'url(#grad-right)');
+                overlaysGroup.appendChild(rightFade);
+            }
+            
+            return { visiblePositions, visibleIndices };
+        }
+
+        // Create ellipsis group element
+        function createEllipsisGroup(startIndex, count, routeLane, prevStationNewX, nextStationNewX) {
+            const ellipsisGroup = document.createElement('div');
+            ellipsisGroup.className = 'ellipsis-group';
+            
+            const xPosition = (prevStationNewX + nextStationNewX) / 2;
+            ellipsisGroup.style.left = `${xPosition}px`;
+            ellipsisGroup.style.transform = 'translateX(-50%)';
+            
+            const ellipsisNode = document.createElement('div');
+            ellipsisNode.className = 'node-ellipsis';
+            ellipsisNode.textContent = '• • •';
+            ellipsisGroup.appendChild(ellipsisNode);
+            
+            const ellipsisLabel = document.createElement('div');
+            ellipsisLabel.className = 'ellipsis-label';
+            ellipsisLabel.textContent = `${count} stop${count > 1 ? 's' : ''}`;
+            ellipsisGroup.appendChild(ellipsisLabel);
+            
+            routeLane.appendChild(ellipsisGroup);
+        }
+
+        // Create folded line block element
+        function createFoldedLineBlock(startIndex, count, routeLane, prevStationNewX, nextStationNewX) {
+            const lineWidth = nextStationNewX - prevStationNewX;
+            const startPosition = prevStationNewX;
+            
+            const foldedLineBlock = document.createElement('div');
+            foldedLineBlock.className = 'folded-line-block';
+            foldedLineBlock.style.left = `${startPosition}px`;
+            foldedLineBlock.style.width = `${lineWidth}px`;
+            
+            routeLane.appendChild(foldedLineBlock);
+        }
+
+        // Update station folding
+        function updateStationFolding() {
+            console.log('updateStationFolding called, isFolded:', isFolded);
+            
+            if (!isFolded) {
+                console.log('Unfolding - showing all stations');
+                const stationContainers = document.querySelectorAll('.node-container');
+                stationContainers.forEach((container, index) => {
+                    container.classList.remove('station-folded');
+                    container.style.left = `${80 + (index * 160)}px`;
+                    
+                    const station = fLineStations[index];
+                    const label = container.querySelector('.station-label');
+                    if (label && station) {
+                        label.classList.remove('top', 'bottom');
+                        label.classList.add(station.position);
+                    }
+                });
+                
+                // Remove ellipsis groups and folded line blocks
+                const existingEllipsis = document.querySelectorAll('.ellipsis-group');
+                existingEllipsis.forEach(ellipsis => ellipsis.remove());
+                
+                const existingFoldedLines = document.querySelectorAll('.folded-line-block');
+                existingFoldedLines.forEach(line => line.remove());
+                
+                // Remove old connection lines
+                const oldConnectionLines = document.querySelectorAll('.connection-line');
+                oldConnectionLines.forEach(line => line.remove());
+                
+                // Recreate connection lines at original positions
+                const routeLane = document.querySelector('.route-lane');
+                for (let i = 0; i < fLineStations.length - 1; i++) {
+                    const currentPos = 80 + (i * 160);
+                    const nextPos = 80 + ((i + 1) * 160);
+                    const lineWidth = nextPos - currentPos;
+                    
+                    const connectionLine = document.createElement('div');
+                    connectionLine.className = 'connection-line';
+                    connectionLine.style.left = `${currentPos}px`;
+                    connectionLine.style.width = `${lineWidth}px`;
+                    connectionLine.dataset.index = String(i);
+                    
+                    const currentStation = fLineStations[i];
+                    const nextStation = fLineStations[i + 1];
+                    
+                    if (currentStation.position === 'top' && nextStation.position === 'top') {
+                        connectionLine.classList.add('top');
+                    } else if (currentStation.position === 'bottom' && nextStation.position === 'bottom') {
+                        connectionLine.classList.add('bottom');
+                    } else {
+                        connectionLine.classList.add('both');
+                    }
+                    
+                    routeLane.appendChild(connectionLine);
+                }
+                
+                redrawSpline();
+                updateFoldedCount();
+                return;
+            }
+            
+            // Folding mode
+            console.log('Folding - creating ellipsis groups');
+            const stationContainers = document.querySelectorAll('.node-container');
+            const routeLane = document.querySelector('.route-lane');
+            
+            // Remove existing ellipsis groups and folded line blocks
+            const existingEllipsis = document.querySelectorAll('.ellipsis-group');
+            existingEllipsis.forEach(ellipsis => ellipsis.remove());
+            
+            const existingFoldedLines = document.querySelectorAll('.folded-line-block');
+            existingFoldedLines.forEach(line => line.remove());
+            
+            let totalFolded = 0;
+            
+            stationContainers.forEach((container, index) => {
+                const station = fLineStations[index];
+                if (!station) return;
+                
+                const shouldFold = !isImportantStation(station);
+                
+                if (shouldFold) {
+                    container.classList.add('station-folded');
+                    totalFolded++;
+                } else {
+                    container.classList.remove('station-folded');
+                }
+            });
+            
+            console.log('Total stations folded:', totalFolded);
+            
+            // Redraw spline and get new positions
+            const { visiblePositions, visibleIndices } = redrawSpline();
+            
+            // Create ellipsis groups and folded line blocks
+            for (let i = 0; i < visibleIndices.length; i++) {
+                const currentIndex = visibleIndices[i];
+                const nextIndex = visibleIndices[i + 1];
+                
+                if (nextIndex !== undefined) {
+                    const gap = nextIndex - currentIndex;
+                    if (gap > 1) {
+                        const prevStationNewX = visiblePositions[i];
+                        const nextStationNewX = visiblePositions[i + 1];
+                        const foldedStations = gap - 1;
+                        createEllipsisGroup(currentIndex + 1, foldedStations, routeLane, prevStationNewX, nextStationNewX);
+                        createFoldedLineBlock(currentIndex + 1, foldedStations, routeLane, prevStationNewX, nextStationNewX);
+                    }
+                }
+            }
+            
+            updateFoldedCount();
+        }
+
+        // Update folded count in status strip
+        function updateFoldedCount() {
+            const statusItems = document.querySelectorAll('.status-item');
+            
+            if (!isFolded) {
+                if (statusItems[2]) {
+                    const overcrowdedStations = fLineStations.filter(station => station.crowd >= 120).length;
+                    statusItems[2].textContent = `Crowd ≥ 120 ppl (${overcrowdedStations} stations)`;
+                }
+                return;
+            }
+            
+            const foldedCount = fLineStations.filter(station => !isImportantStation(station)).length;
+            
+            if (statusItems[2]) {
+                const overcrowdedStations = fLineStations.filter(station => station.crowd >= 120).length;
+                statusItems[2].textContent = `Crowd ≥ 120 ppl (${overcrowdedStations} stations) • Folded: ${foldedCount}`;
+            }
+        }
+
+        // Initialize real-time data and start auto-refresh
+        fetchRealtimeData();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(fetchRealtimeData, 30000);
+
+        // Center view on Broadway-Lafayette St (index 20)
+        setTimeout(() => {
+            const targetStation = document.querySelectorAll('.node-container')[20];
+            if (targetStation) {
+                targetStation.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+            }
+        }, 100);
+    </script>
+</body>
+</html>
+
