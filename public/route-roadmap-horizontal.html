@@ -82,15 +82,27 @@
             font-family: var(--font-family);
             background: var(--bg);
             color: var(--text-primary);
-            overflow-x: auto;
-            overflow-y: auto;
+            overflow: hidden; /* No scrolling on body */
             height: 100vh;
             transition: background 0.3s ease, color 0.3s ease;
+            margin: 0;
+            padding: 0;
         }
 
-        /* STICKY HEADER */
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Hide scrollbar for IE, Edge and Firefox */
+        body {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        /* FIXED HEADER */
         .header {
-            position: sticky;
+            position: fixed;
             top: 0;
             left: 0;
             right: 0;
@@ -175,6 +187,104 @@
             border-color: var(--route-color);
         }
 
+        /* Test button train arrival animation */
+        #btn-test-train {
+            position: relative;
+            overflow: hidden;
+        }
+
+        #btn-test-train .train-emoji {
+            display: inline-block;
+        }
+
+        #btn-test-train .test-text {
+            display: inline-block;
+            margin-left: 4px;
+        }
+
+        /* Arriving animation - train enters from right */
+        #btn-test-train.arriving {
+            background: var(--route-color);
+            color: white;
+            border-color: var(--route-color);
+        }
+
+        #btn-test-train.arriving::before {
+            content: '🚇';
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            font-size: 18px;
+            animation: trainEntering 1.5s ease-out forwards;
+        }
+
+        #btn-test-train.arriving::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent 0%, var(--route-color) 20%, var(--route-color) 80%, transparent 100%);
+            opacity: 0;
+            animation: trainLight 1.5s ease-out forwards;
+        }
+
+        /* Departing animation - train exits to left */
+        #btn-test-train.departing::before {
+            content: '🚇';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            animation: trainDeparting 1.5s ease-in forwards;
+        }
+
+        @keyframes trainEntering {
+            0% {
+                right: -50px;
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            100% {
+                right: calc(50% - 9px);
+                opacity: 1;
+            }
+        }
+
+        @keyframes trainDeparting {
+            0% {
+                left: 50%;
+                opacity: 1;
+            }
+            80% {
+                opacity: 1;
+            }
+            100% {
+                left: -50px;
+                opacity: 0;
+            }
+        }
+
+        @keyframes trainLight {
+            0% {
+                opacity: 0;
+            }
+            30% {
+                opacity: 0.3;
+            }
+            70% {
+                opacity: 0.3;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
         .toggle-btn:hover {
             border-color: var(--route-color);
         }
@@ -182,8 +292,25 @@
         /* ROUTE CANVAS */
         .route-canvas {
             min-width: 100%;
-            padding: calc(var(--baseline) * 6) calc(var(--baseline) * 6);
-            padding-bottom: 80px;
+            height: 100vh; /* Full viewport height */
+            padding: 0 calc(var(--baseline) * 6);
+            padding-top: 64px; /* Header height */
+            padding-bottom: 48px; /* Footer height */
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; /* Align to left */
+            overflow-x: auto; /* Allow horizontal scrolling */
+            overflow-y: hidden; /* No vertical scrolling */
+        }
+
+        /* Hide scrollbar for route-canvas */
+        .route-canvas::-webkit-scrollbar {
+            display: none;
+        }
+
+        .route-canvas {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
 
         .route-lane {
@@ -227,11 +354,7 @@
             stroke-dasharray: 6 4;
         }
 
-        .direction-arrow {
-            fill: var(--route-color);
-            opacity: 0.8;
-            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
-        }
+        /* Direction arrows removed - no longer needed */
 
         /* NODES */
         .node-container {
@@ -301,6 +424,92 @@
             line-height: 1;
         }
 
+        .node.overcrowded {
+            background: #FF4444 !important;
+            border: 2px solid #CC0000 !important;
+            box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.3), 0 2px 8px rgba(255, 68, 68, 0.4);
+            animation: nodePulse 2s infinite;
+        }
+
+        @keyframes nodePulse {
+            0%, 100% { 
+                box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.3), 0 2px 8px rgba(255, 68, 68, 0.4);
+            }
+            50% { 
+                box-shadow: 0 0 0 6px rgba(255, 68, 68, 0.5), 0 4px 12px rgba(255, 68, 68, 0.6);
+            }
+        }
+
+        /* Human figures around overcrowded nodes */
+        .human-figures {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .human-figure {
+            position: absolute;
+            font-size: 16px;
+            color: #FF4444;
+            animation: humanFloat 3s ease-in-out infinite;
+            opacity: 0.8;
+        }
+
+        .human-figure:nth-child(1) { 
+            top: -26px; 
+            left: -20px; 
+            animation-delay: 0s; 
+        }
+        .human-figure:nth-child(2) { 
+            top: -20px; 
+            right: -26px; 
+            animation-delay: 0.5s; 
+        }
+        .human-figure:nth-child(3) { 
+            bottom: -26px; 
+            left: -15px; 
+            animation-delay: 1s; 
+        }
+        .human-figure:nth-child(4) { 
+            bottom: -20px; 
+            right: -20px; 
+            animation-delay: 1.5s; 
+        }
+        .human-figure:nth-child(5) { 
+            top: -15px; 
+            left: 0px; 
+            animation-delay: 2s; 
+        }
+        .human-figure:nth-child(6) { 
+            bottom: -15px; 
+            right: 0px; 
+            animation-delay: 2.5s; 
+        }
+        .human-figure:nth-child(7) { 
+            top: -32px; 
+            left: 0px; 
+            animation-delay: 3s; 
+        }
+        .human-figure:nth-child(8) { 
+            bottom: -32px; 
+            right: 0px; 
+            animation-delay: 3.5s; 
+        }
+
+        @keyframes humanFloat {
+            0%, 100% { 
+                transform: translateY(0px) scale(1);
+                opacity: 0.8;
+            }
+            50% { 
+                transform: translateY(-3px) scale(1.1);
+                opacity: 1;
+            }
+        }
+
         .node.ellipsis {
             width: 32px;
             height: 12px;
@@ -319,36 +528,7 @@
             background: var(--route-color-fade);
         }
 
-        /* HILL CONNECTOR */
-        .hill-connector {
-            position: absolute;
-            width: 16px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--route-color);
-            opacity: 0.9;
-            border: 1px solid var(--route-color-strong);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-            z-index: 9;
-        }
-
-        .hill-connector.top {
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) translateY(-4px);
-        }
-
-        .hill-connector.bottom {
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) translateY(4px);
-        }
-
-        .hill-connector.ellipsis {
-            opacity: 0.6;
-            width: 12px;
-            height: 6px;
-        }
+        /* Hill connectors removed - using human figures instead */
 
         /* CONNECTING LINES */
         .connection-line {
@@ -454,21 +634,7 @@
             vertical-align: middle;
         }
 
-        .crowd-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            margin-left: var(--icon-gap);
-            padding: 2px 8px;
-            background: var(--surface);
-            border: 1px solid var(--divider);
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            font-variant-numeric: tabular-nums;
-            vertical-align: middle;
-        }
+        /* Crowd chips removed - using human figures instead */
 
         .transfer-badges {
             display: inline-flex;
@@ -490,10 +656,11 @@
         }
 
         /* MTA Colors */
-        .badge-A, .badge-E { background: #0039A6; }
+        .badge-A, .badge-C, .badge-E { background: #0039A6; }
         .badge-B, .badge-D { background: #FF6319; }
         .badge-F { background: #FF6319; }
         .badge-7 { background: #B933AD; }
+        .badge-M { background: #FF6319; }
         .badge-L { background: #A7A9AC; }
 
         /* BOTTOM STATUS STRIP */
@@ -514,6 +681,603 @@
             font-weight: 500;
             z-index: 100;
             font-variant-numeric: tabular-nums;
+        }
+
+        /* Alert Types */
+        .alert-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: var(--surface);
+            border: 1px solid var(--divider);
+        }
+
+        .alert-warning {
+            background: rgba(255, 209, 102, 0.15);
+            border-color: #FFD166;
+            color: #FFD166;
+        }
+
+        .alert-delay {
+            background: rgba(240, 138, 36, 0.15);
+            border-color: #F08A24;
+            color: #F08A24;
+        }
+
+        .alert-suspended {
+            background: rgba(231, 76, 60, 0.15);
+            border-color: #E74C3C;
+            color: #E74C3C;
+        }
+
+        .alert-planned {
+            background: rgba(45, 156, 219, 0.15);
+            border-color: #2D9CDB;
+            color: #2D9CDB;
+        }
+
+        .alert-icon {
+            font-size: 14px;
+        }
+
+        /* Station Alert Indicators - combined icon and text */
+        .station-alert {
+            position: absolute;
+            top: -16px;
+            right: -8px;
+            height: 20px;
+            padding: 2px 4px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 20;
+            border: 2px solid var(--surface);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            width: 20px;
+            transition: width 0.3s ease, padding 0.3s ease, border-radius 0.3s ease, gap 0.3s ease;
+        }
+
+        .station-alert:hover {
+            transform: scale(1.05);
+        }
+
+        /* Alert text hidden by default */
+        .station-alert .alert-text {
+            opacity: 0;
+            width: 0;
+            transition: opacity 0.2s ease, width 0.2s ease;
+        }
+
+        /* Expanded state - triggered by animation */
+        .station-alert.expanding {
+            width: auto;
+            padding: 2px 8px 2px 4px;
+            border-radius: 10px;
+            gap: 4px;
+            animation: alertExpand 3s ease-in-out forwards;
+        }
+
+        .station-alert.expanding .alert-text {
+            opacity: 1;
+            width: auto;
+        }
+
+        @keyframes alertExpand {
+            0% {
+                width: 20px;
+                padding: 2px 4px;
+                border-radius: 50%;
+                gap: 0;
+            }
+            5% {
+                width: 20px;
+                padding: 2px 4px;
+                border-radius: 50%;
+                gap: 0;
+            }
+            15% {
+                width: auto;
+                padding: 2px 8px 2px 4px;
+                border-radius: 10px;
+                gap: 4px;
+            }
+            85% {
+                width: auto;
+                padding: 2px 8px 2px 4px;
+                border-radius: 10px;
+                gap: 4px;
+            }
+            95% {
+                width: 20px;
+                padding: 2px 4px;
+                border-radius: 50%;
+                gap: 0;
+            }
+            100% {
+                width: 20px;
+                padding: 2px 4px;
+                border-radius: 50%;
+                gap: 0;
+            }
+        }
+
+        /* Text animation - sync with container */
+        @keyframes alertTextShow {
+            0%, 10% {
+                opacity: 0;
+                max-width: 0;
+            }
+            20% {
+                opacity: 1;
+                max-width: 200px;
+            }
+            80% {
+                opacity: 1;
+                max-width: 200px;
+            }
+            90%, 100% {
+                opacity: 0;
+                max-width: 0;
+            }
+        }
+
+        .station-alert.expanding .alert-text {
+            animation: alertTextShow 3s ease-in-out forwards;
+        }
+
+        .station-alert.warning {
+            background: #FFD166;
+            color: #000000;
+        }
+
+        .station-alert.warning .alert-icon {
+            content: '⚠';
+        }
+
+        .station-alert.delay {
+            background: #F08A24;
+            color: #FFFFFF;
+        }
+
+        .station-alert.delay .alert-icon {
+            content: '⏱';
+            font-size: 12px;
+        }
+
+        .station-alert.suspended {
+            background: #E74C3C;
+            color: #FFFFFF;
+        }
+
+        .station-alert.suspended .alert-icon {
+            content: '✕';
+            font-size: 16px;
+        }
+
+        .station-alert.planned {
+            background: #2D9CDB;
+            color: #FFFFFF;
+        }
+
+        .station-alert.planned .alert-icon {
+            content: 'ⓘ';
+            font-size: 13px;
+        }
+
+        /* Alert icon and text inline */
+        .station-alert .alert-icon {
+            font-size: 11px;
+            line-height: 1;
+        }
+
+        .station-alert .alert-text {
+            font-size: 10px;
+            line-height: 1;
+            font-weight: 600;
+        }
+
+        /* Alert Modal */
+        .alert-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .alert-modal.show {
+            display: flex;
+        }
+
+        .alert-content {
+            background: var(--surface);
+            border: 1px solid var(--divider);
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .alert-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .alert-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .alert-close:hover {
+            background: var(--divider);
+        }
+
+        .alert-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .alert-item-detail {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--divider);
+            border-radius: 6px;
+        }
+
+        .alert-item-detail .alert-icon {
+            font-size: 20px;
+            margin-top: 2px;
+        }
+
+        .alert-item-detail .alert-info {
+            flex: 1;
+        }
+
+        .alert-item-detail .alert-type {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .alert-item-detail .alert-description {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .alert-item-detail .alert-count {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: var(--divider);
+            color: var(--text-primary);
+        }
+
+        /* Station Folding - Ellipsis Groups */
+        .station-folded {
+            display: none;
+        }
+
+        .ellipsis-group {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: var(--lane-height);
+            z-index: 5;
+        }
+
+        .node-ellipsis {
+            width: 60px;
+            height: 24px;
+            background: var(--surface);
+            border: 1px solid var(--divider);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            letter-spacing: 2px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .ellipsis-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-style: italic;
+            background: var(--surface);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--divider);
+            white-space: nowrap;
+        }
+
+        .ellipsis-label.top {
+            top: calc(50% - 30px);
+        }
+
+        .ellipsis-label.bottom {
+            top: calc(50% + 30px);
+        }
+
+        /* Folded line blocks */
+        .folded-line-block {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 4px;
+            background: var(--route-color-fade);
+            opacity: 1;
+            z-index: 1;
+            border-radius: 2px;
+        }
+
+        /* Train arrival animation - directional ripple effect */
+        .train-icon {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            background: #000000;
+            border: 2px solid #FFFFFF;
+            border-radius: 50%;
+            z-index: 100;
+            transition: left 1s linear;
+        }
+
+        /* Dark mode - white ripples */
+        .dark .train-icon {
+            background: #FFFFFF;
+            border: 2px solid #000000;
+        }
+
+        /* Ripple elements - chevron arrow waves (left direction) */
+        .train-icon::before,
+        .train-icon::after {
+            content: '‹';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.8);
+            pointer-events: none;
+            opacity: 0;
+            filter: blur(1px);
+            text-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .train-icon.arriving::before {
+            animation: chevronRipple1 1.2s ease-out infinite;
+        }
+
+        .train-icon.arriving::after {
+            animation: chevronRipple2 1.2s ease-out 0.4s infinite;
+        }
+
+        /* Dark mode ripples */
+        .dark .train-icon::before,
+        .dark .train-icon::after {
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes chevronRipple1 {
+            0% {
+                transform: translate(-50%, -50%) translateX(-10px) scale(0.6);
+                opacity: 0;
+                filter: blur(2px);
+            }
+            20% {
+                opacity: 0.9;
+                filter: blur(1px);
+            }
+            60% {
+                transform: translate(-50%, -50%) translateX(-60px) scale(1.2);
+                opacity: 0.5;
+                filter: blur(2px);
+            }
+            100% {
+                transform: translate(-50%, -50%) translateX(-100px) scale(1.5);
+                opacity: 0;
+                filter: blur(3px);
+            }
+        }
+
+        @keyframes chevronRipple2 {
+            0% {
+                transform: translate(-50%, -50%) translateX(-10px) scale(0.6);
+                opacity: 0;
+                filter: blur(2px);
+            }
+            20% {
+                opacity: 0.9;
+                filter: blur(1px);
+            }
+            60% {
+                transform: translate(-50%, -50%) translateX(-60px) scale(1.2);
+                opacity: 0.5;
+                filter: blur(2px);
+            }
+            100% {
+                transform: translate(-50%, -50%) translateX(-100px) scale(1.5);
+                opacity: 0;
+                filter: blur(3px);
+            }
+        }
+
+        /* Station arrival impact - black and white */
+        /* Station node animation - arriving then departing */
+        .node.train-approaching {
+            animation: stationAlertArrive 1.5s ease-out forwards;
+        }
+
+        .node.train-departing {
+            animation: stationAlertDepart 1.5s ease-in forwards;
+        }
+
+        /* Train arriving at station */
+        @keyframes stationAlertArrive {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 2px rgba(255, 255, 255, 0.3);
+            }
+            30% {
+                transform: scale(1.3);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 
+                            0 0 0 6px rgba(0, 0, 0, 0.6), 
+                            0 0 30px rgba(0, 0, 0, 0.4);
+            }
+            50% {
+                transform: scale(1.25);
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), 
+                            0 0 0 5px rgba(0, 0, 0, 0.7), 
+                            0 0 25px rgba(0, 0, 0, 0.5);
+            }
+            70% {
+                transform: scale(1.15);
+                box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3), 
+                            0 0 0 4px rgba(0, 0, 0, 0.6), 
+                            0 0 20px rgba(0, 0, 0, 0.4);
+            }
+            100% {
+                transform: scale(1.1);
+                box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3), 
+                            0 0 0 3px rgba(0, 0, 0, 0.5), 
+                            0 0 15px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        /* Train departing from station */
+        @keyframes stationAlertDepart {
+            0% {
+                transform: scale(1.1);
+                box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3), 
+                            0 0 0 3px rgba(0, 0, 0, 0.5), 
+                            0 0 15px rgba(0, 0, 0, 0.3);
+            }
+            30% {
+                transform: scale(1.2);
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), 
+                            0 0 0 5px rgba(0, 0, 0, 0.6), 
+                            0 0 25px rgba(0, 0, 0, 0.4);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 2px rgba(255, 255, 255, 0.3);
+            }
+        }
+
+        /* Dark mode - white glow */
+        .dark .node.train-approaching {
+            animation: stationAlertArriveDark 1.5s ease-out forwards;
+        }
+
+        .dark .node.train-departing {
+            animation: stationAlertDepartDark 1.5s ease-in forwards;
+        }
+
+        @keyframes stationAlertArriveDark {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 2px 4px rgba(255, 255, 255, 0.2), 0 0 0 2px rgba(0, 0, 0, 0.3);
+            }
+            30% {
+                transform: scale(1.3);
+                box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4), 
+                            0 0 0 6px rgba(255, 255, 255, 0.6), 
+                            0 0 30px rgba(255, 255, 255, 0.4);
+            }
+            50% {
+                transform: scale(1.25);
+                box-shadow: 0 4px 10px rgba(255, 255, 255, 0.4), 
+                            0 0 0 5px rgba(255, 255, 255, 0.7), 
+                            0 0 25px rgba(255, 255, 255, 0.5);
+            }
+            70% {
+                transform: scale(1.15);
+                box-shadow: 0 3px 8px rgba(255, 255, 255, 0.3), 
+                            0 0 0 4px rgba(255, 255, 255, 0.6), 
+                            0 0 20px rgba(255, 255, 255, 0.4);
+            }
+            100% {
+                transform: scale(1.1);
+                box-shadow: 0 3px 6px rgba(255, 255, 255, 0.3), 
+                            0 0 0 3px rgba(255, 255, 255, 0.5), 
+                            0 0 15px rgba(255, 255, 255, 0.3);
+            }
+        }
+
+        @keyframes stationAlertDepartDark {
+            0% {
+                transform: scale(1.1);
+                box-shadow: 0 3px 6px rgba(255, 255, 255, 0.3), 
+                            0 0 0 3px rgba(255, 255, 255, 0.5), 
+                            0 0 15px rgba(255, 255, 255, 0.3);
+            }
+            30% {
+                transform: scale(1.2);
+                box-shadow: 0 4px 10px rgba(255, 255, 255, 0.4), 
+                            0 0 0 5px rgba(255, 255, 255, 0.6), 
+                            0 0 25px rgba(255, 255, 255, 0.4);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 2px 4px rgba(255, 255, 255, 0.2), 0 0 0 2px rgba(0, 0, 0, 0.3);
+            }
         }
 
         .status-item {
@@ -559,7 +1323,13 @@
         <div class="route-badge">G</div>
         <div class="destination">Church Av → Court Sq</div>
         <div class="current-train-chip">Train #G-047</div>
-        <div class="theme-toggles">
+        <button class="toggle-btn" id="btn-fold" style="margin-left: 12px;">⋯ Fold</button>
+        <button class="toggle-btn" id="btn-test-train" style="margin-left: 8px;">
+            <span class="train-emoji">🚇</span>
+            <span class="test-text">Test</span>
+        </button>
+        <button class="toggle-btn" id="btn-hide" style="margin-left: 8px;">👁 Hide</button>
+        <div class="theme-toggles" style="display: none;">
             <button class="toggle-btn active" id="btn-light">Light</button>
             <button class="toggle-btn" id="btn-dark">Dark</button>
             <button class="toggle-btn active" id="btn-color">Color</button>
@@ -593,16 +1363,27 @@
 
     <!-- BOTTOM STATUS STRIP -->
     <footer class="status-strip">
-        <div class="status-item">Updated 14:46:34</div>
+        <div class="status-item" id="lastUpdated">Updated 14:46:34</div>
         <div class="status-separator"></div>
-        <div class="status-item">Alerts ▲ 3</div>
+        <div class="status-item" id="alertCount">Alerts ▲ 0</div>
         <div class="status-separator"></div>
-        <div class="status-item">Crowd ≥ 120 ppl</div>
+        <div class="status-item" id="crowdInfo">Crowd ≥ 120 ppl</div>
         <div class="status-separator"></div>
-        <div class="status-item">Collapsed … 19 stops</div>
-        <div class="status-separator"></div>
-        <div class="status-item">Feed OK</div>
+        <div class="status-item" id="feedStatus">Feed OK</div>
     </footer>
+
+    <!-- Alert Modal -->
+    <div class="alert-modal" id="alertModal">
+        <div class="alert-content">
+            <div class="alert-header">
+                <div class="alert-title">G Line Service Alerts</div>
+                <button class="alert-close" onclick="closeAlertModal()">&times;</button>
+            </div>
+            <div class="alert-list" id="alertList">
+                <!-- Alert items will be populated here -->
+            </div>
+        </div>
+    </div>
 
     <script>
         // Theme Toggle Logic
@@ -610,7 +1391,14 @@
         const btnDark = document.getElementById('btn-dark');
         const btnColor = document.getElementById('btn-color');
         const btnBW = document.getElementById('btn-bw');
+        const btnFold = document.getElementById('btn-fold');
+        const btnTestTrain = document.getElementById('btn-test-train');
+        const btnHide = document.getElementById('btn-hide');
+        const themeToggles = document.querySelector('.theme-toggles');
         const body = document.body;
+        
+        let isFolded = false;
+        let controlsHidden = true; // Start with controls hidden
 
         btnLight.addEventListener('click', () => {
             body.classList.remove('dark');
@@ -636,23 +1424,437 @@
             btnColor.classList.remove('active');
         });
 
-        // Station Data (G Line - Church Av to Court Sq)
-        const stations = [
-            { id: 1, name: 'Church Av', type: 'terminus', state: 'previous', position: 'top', transfers: [] },
-            { id: 2, name: 'Beverly Rd', type: 'regular', state: 'previous', position: 'bottom', transfers: [] },
-            { id: 3, name: 'Ellipsis 1', type: 'ellipsis', count: 3, position: 'top' },
-            { id: 4, name: 'Smith–9 Sts', type: 'regular', state: 'regular', position: 'bottom', transfers: ['F'], crowd: 89 },
-            { id: 5, name: 'Carroll St', type: 'regular', state: 'regular', position: 'top', transfers: [] },
-            { id: 6, name: 'Bergen St', type: 'regular', state: 'current', position: 'bottom', transfers: [] },
-            { id: 7, name: 'Hoyt–Schermerhorn', type: 'regular', state: 'regular', position: 'top', transfers: ['A', 'E'], crowd: 173 },
-            { id: 8, name: 'Fulton St', type: 'regular', state: 'regular', position: 'bottom', transfers: [], delayed: true },
-            { id: 9, name: 'Clinton–Washington', type: 'regular', state: 'skipped', position: 'top', transfers: [] },
-            { id: 10, name: 'Ellipsis 2', type: 'ellipsis', count: 5, position: 'bottom' },
-            { id: 11, name: 'Greenpoint Av', type: 'regular', state: 'regular', position: 'top', transfers: [] },
-            { id: 12, name: 'Nassau Av', type: 'regular', state: 'regular', position: 'bottom', transfers: [], crowd: 142 },
-            { id: 13, name: 'Ellipsis 3', type: 'ellipsis', count: 4, position: 'top' },
-            { id: 14, name: 'Court Sq', type: 'terminus', state: 'regular', position: 'bottom', transfers: ['7', 'E'] }
+        // Hide/Show controls button
+        btnHide.addEventListener('click', () => {
+            controlsHidden = !controlsHidden;
+            
+            if (controlsHidden) {
+                themeToggles.style.display = 'none';
+                btnHide.textContent = '👁 Show';
+            } else {
+                themeToggles.style.display = 'flex';
+                btnHide.textContent = '👁 Hide';
+            }
+        });
+
+        btnFold.addEventListener('click', () => {
+            isFolded = !isFolded;
+            btnFold.textContent = isFolded ? '⋯ Unfold' : '⋯ Fold';
+            btnFold.classList.toggle('active', isFolded);
+            console.log('=== FOLDING TOGGLED ===');
+            console.log('isFolded:', isFolded);
+            updateStationFolding();
+        });
+
+        btnTestTrain.addEventListener('click', () => {
+            console.log('=== TEST TRAIN ANIMATION ===');
+            
+            const testStationIndex = 10; // Clinton–Washington Avenues
+            const stationContainers = document.querySelectorAll('.node-container');
+            const targetStationContainer = stationContainers[testStationIndex];
+            const targetNode = targetStationContainer?.querySelector('.node');
+            
+            // Phase 1: Button - train arriving (entering from right)
+            btnTestTrain.classList.add('arriving');
+            
+            setTimeout(() => {
+                // Phase 2: Button - train stops, station - train arriving
+                btnTestTrain.classList.remove('arriving');
+                
+                // Trigger station arriving animation
+                if (targetNode) {
+                    console.log(`🚇 Station ${testStationIndex} - Train arriving`);
+                    targetNode.classList.remove('train-approaching', 'train-departing');
+                    targetNode.classList.add('train-approaching');
+                    
+                    // Trigger alert expansion animation
+                    const alerts = targetStationContainer.querySelectorAll('.station-alert');
+                    alerts.forEach(alert => {
+                        alert.classList.remove('expanding');
+                        // Force reflow to restart animation
+                        void alert.offsetWidth;
+                        alert.classList.add('expanding');
+                    });
+                }
+                
+                // Create test train data for map visualization
+                const testArrival = {
+                    trainId: 'TEST-001',
+                    stopName: gLineStations[testStationIndex].name,
+                    stopId: gLineStations[testStationIndex].id,
+                    minutesAway: 0.5 // Will trigger arriving animation
+                };
+                
+                // Add to realtimeData
+                if (!realtimeData.arrivals) {
+                    realtimeData.arrivals = [];
+                }
+                realtimeData.arrivals.push(testArrival);
+                
+                console.log('Test train added:', testArrival);
+                
+                // Update animations
+                updateTrainAnimations();
+                
+                // Phase 3: After 1.5s - station switches to departing
+                setTimeout(() => {
+                    if (targetNode) {
+                        console.log(`🚇 Station ${testStationIndex} - Train departing`);
+                        targetNode.classList.remove('train-approaching');
+                        targetNode.classList.add('train-departing');
+                    }
+                    
+                    // Phase 4: After another 1.5s - button train departing
+                    setTimeout(() => {
+                        btnTestTrain.classList.add('departing');
+                        
+                        setTimeout(() => {
+                            btnTestTrain.classList.remove('departing');
+                            
+                            // Clean up station animation
+                            if (targetNode) {
+                                targetNode.classList.remove('train-departing');
+                                console.log(`✓ Station ${testStationIndex} animation complete`);
+                            }
+                            
+                            // Remove test train
+                            const index = realtimeData.arrivals.findIndex(a => a.trainId === 'TEST-001');
+                            if (index !== -1) {
+                                realtimeData.arrivals.splice(index, 1);
+                                console.log('Test train removed');
+                                updateTrainAnimations();
+                            }
+                        }, 1500); // Duration of button departing animation
+                    }, 0); // Start button departing immediately when station starts departing
+                    
+                }, 1500); // Duration of station arriving animation
+                
+            }, 1500); // Duration of button arriving animation
+        });
+
+        // G Line Station Data (Church Av to Court Sq) - Using correct MTA stop IDs and transfers
+        const gLineStations = [
+            { id: 'F27', name: 'Church Avenue', type: 'terminus', position: 'top', transfers: ['F'], crowd: 180, alerts: [] },
+            { id: 'F26', name: 'Fort Hamilton Parkway', type: 'regular', position: 'bottom', transfers: ['F'], crowd: 150, alerts: [] },
+            { id: 'F25', name: '15th Street–Prospect Park', type: 'regular', position: 'top', transfers: ['F'], crowd: 170, alerts: [] },
+            { id: 'F24', name: '7th Avenue', type: 'regular', position: 'bottom', transfers: ['F'], crowd: 140, alerts: [] },
+            { id: 'F23', name: '4th Avenue–9th Street', type: 'regular', position: 'top', transfers: ['F'], crowd: 200, alerts: [] },
+            { id: 'F22', name: 'Smith–9th Streets', type: 'regular', position: 'bottom', transfers: ['F'], crowd: 220, alerts: [] },
+            { id: 'F21', name: 'Carroll Street', type: 'regular', position: 'top', transfers: ['F'], crowd: 130, alerts: [] },
+            { id: 'F20', name: 'Bergen Street', type: 'regular', position: 'bottom', transfers: [], crowd: 120, alerts: [] },
+            { id: 'A42', name: 'Hoyt–Schermerhorn Streets', type: 'regular', position: 'top', transfers: ['A', 'C'], crowd: 280, alerts: ['warning'] },
+            { id: 'G36', name: 'Fulton Street', type: 'regular', position: 'bottom', transfers: [], crowd: 110, alerts: ['warning'] },
+            { id: 'G35', name: 'Clinton–Washington Avenues', type: 'regular', position: 'top', transfers: [], crowd: 100, alerts: [] },
+            { id: 'G34', name: 'Classon Avenue', type: 'regular', position: 'bottom', transfers: [], crowd: 80, alerts: [] },
+            { id: 'G33', name: 'Bedford–Nostrand Avenues', type: 'regular', position: 'top', transfers: [], crowd: 95, alerts: [] },
+            { id: 'G32', name: 'Myrtle–Willoughby Avenues', type: 'regular', position: 'bottom', transfers: [], crowd: 90, alerts: [] },
+            { id: 'G31', name: 'Flushing Avenue', type: 'regular', position: 'top', transfers: [], crowd: 85, alerts: [] },
+            { id: 'G30', name: 'Broadway', type: 'regular', position: 'bottom', transfers: [], crowd: 75, alerts: [] },
+            { id: 'G29', name: 'Metropolitan Avenue', type: 'regular', position: 'top', transfers: [], crowd: 70, alerts: [] },
+            { id: 'G28', name: 'Nassau Avenue', type: 'regular', position: 'bottom', transfers: [], crowd: 65, alerts: [] },
+            { id: 'G26', name: 'Greenpoint Avenue', type: 'regular', position: 'top', transfers: [], crowd: 60, alerts: [] },
+            { id: 'G24', name: '21st Street', type: 'regular', position: 'bottom', transfers: [], crowd: 55, alerts: [] },
+            { id: 'G22', name: 'Court Square', type: 'terminus', position: 'top', transfers: ['7', 'E', 'M'], crowd: 250, alerts: ['planned'] }
         ];
+
+        // Real-time data state
+        let realtimeData = {
+            arrivals: [],
+            currentTrain: null,
+            lastUpdate: null,
+            alerts: []
+        };
+
+        // Simulate alert data with detailed descriptions
+        const alertTypes = [
+            { 
+                type: 'warning', 
+                icon: '⚠️', 
+                message: 'Service Advisory', 
+                count: 1,
+                description: 'G Line trains operating with reduced frequency due to signal maintenance. Expect 2-3 minute delays.',
+                details: 'Signal maintenance work between Hoyt-Schermerhorn and Fulton St affecting train spacing.'
+            },
+            { 
+                type: 'delay', 
+                icon: '⏱️', 
+                message: 'Delays', 
+                count: 2,
+                description: 'G Line experiencing delays due to earlier signal problems and high ridership.',
+                details: 'Delays of 5-10 minutes expected. Consider alternative routes or allow extra travel time.'
+            },
+            { 
+                type: 'suspended', 
+                icon: '🚫', 
+                message: 'Service Suspended', 
+                count: 0,
+                description: 'No service suspensions currently affecting G Line.',
+                details: 'All G Line stations are operating normally.'
+            },
+            { 
+                type: 'planned', 
+                icon: '📋', 
+                message: 'Planned Work', 
+                count: 1,
+                description: 'Weekend track maintenance scheduled for G Line between Court Square and Greenpoint Av.',
+                details: 'Service will be suspended between Court Square and Greenpoint Av from 11:45 PM Friday to 5:00 AM Monday. Use 7, E, M trains at Court Square for connections.'
+            }
+        ];
+
+        // Fetch real-time G line data
+        async function fetchRealtimeData() {
+            try {
+                console.log('Fetching real-time G line data...');
+                const response = await fetch('/api/g-arrivals');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Received data:', data);
+                
+                realtimeData.arrivals = data.arrivals || [];
+                realtimeData.lastUpdate = new Date().toLocaleTimeString();
+                
+                console.log(`Found ${realtimeData.arrivals.length} arrivals`);
+                
+                // Find current train (closest arrival)
+                const now = Date.now();
+                const upcomingArrivals = realtimeData.arrivals.filter(arrival => {
+                    const arrivalTime = new Date(arrival.epoch * 1000);
+                    return arrivalTime > now;
+                });
+                
+                console.log(`Found ${upcomingArrivals.length} upcoming arrivals`);
+                
+                if (upcomingArrivals.length > 0) {
+                    const closestArrival = upcomingArrivals.reduce((closest, current) => {
+                        return current.epoch < closest.epoch ? current : closest;
+                    });
+                    realtimeData.currentTrain = closestArrival;
+                    console.log('Current train:', closestArrival);
+                } else {
+                    realtimeData.currentTrain = null;
+                    console.log('No current train found');
+                }
+                
+                updateDisplay();
+            } catch (error) {
+                console.error('Error fetching real-time data:', error);
+                // Fallback to demo data
+                realtimeData.lastUpdate = 'Demo Data';
+                realtimeData.arrivals = [];
+                realtimeData.currentTrain = null;
+                updateDisplay();
+            }
+        }
+
+        // Update display with real-time data
+        function updateDisplay() {
+            // Update header with current train info
+            const currentTrainChip = document.querySelector('.current-train-chip');
+            if (realtimeData.currentTrain) {
+                const trainId = realtimeData.currentTrain.tripId || 'G-XXX';
+                const arrivalTime = realtimeData.currentTrain.arrivalTime || 'Now';
+                currentTrainChip.textContent = `${trainId} • ${arrivalTime}`;
+            } else {
+                currentTrainChip.textContent = 'No Active Train';
+            }
+
+            // Update status strip
+            updateStatusStrip();
+
+            // Update station states based on real-time data
+            updateStationStates();
+        }
+
+        // Update status strip with alert information
+        function updateStatusStrip() {
+            const statusItems = document.querySelectorAll('.status-item');
+            
+            // Update last updated time
+            if (statusItems[0]) {
+                statusItems[0].textContent = `Updated ${realtimeData.lastUpdate}`;
+            }
+
+            // Calculate total alerts
+            const totalAlerts = alertTypes.reduce((sum, alert) => sum + alert.count, 0);
+            
+            // Update alert count
+            if (statusItems[1]) {
+                if (totalAlerts > 0) {
+                    statusItems[1].innerHTML = `Alerts ▲ ${totalAlerts}`;
+                    statusItems[1].style.color = '#F08A24'; // Orange for alerts
+                    statusItems[1].style.cursor = 'pointer';
+                    statusItems[1].onclick = showAlertModal;
+                } else {
+                    statusItems[1].innerHTML = 'Alerts ▲ 0';
+                    statusItems[1].style.color = 'var(--text-secondary)';
+                    statusItems[1].style.cursor = 'default';
+                    statusItems[1].onclick = null;
+                }
+            }
+
+            // Update crowd info
+            if (statusItems[2]) {
+                const overcrowdedStations = gLineStations.filter(station => station.crowd >= 120).length;
+                if (isFolded) {
+                    const foldedCount = gLineStations.filter(station => !isImportantStation(station)).length;
+                    statusItems[2].textContent = `Crowd ≥ 120 ppl (${overcrowdedStations} stations) • Folded: ${foldedCount}`;
+                } else {
+                    statusItems[2].textContent = `Crowd ≥ 120 ppl (${overcrowdedStations} stations)`;
+                }
+            }
+
+            // Update feed status
+            if (statusItems[3]) {
+                if (realtimeData.arrivals.length > 0) {
+                    statusItems[3].textContent = 'Feed OK';
+                    statusItems[3].style.color = '#6CBE45'; // Green for OK
+                } else {
+                    statusItems[3].textContent = 'Feed Error';
+                    statusItems[3].style.color = '#E74C3C'; // Red for error
+                }
+            }
+        }
+
+        // Update station states based on real-time arrivals
+        function updateStationStates() {
+            const stationContainers = document.querySelectorAll('.node-container');
+            
+            // Update train animations
+            updateTrainAnimations();
+            
+            stationContainers.forEach((container, index) => {
+                const station = gLineStations[index];
+                if (!station) return;
+
+                const node = container.querySelector('.node');
+                const label = container.querySelector('.station-label');
+                
+                if (!node || !label) return;
+
+                // Reset classes
+                node.className = `node ${station.type}`;
+                
+                // Add overcrowded class if station has more than 2 figures (high crowd density)
+                const figureCount = Math.min(8, Math.max(1, Math.floor(Math.pow(station.crowd / 30, 0.7))));
+                if (figureCount > 2) {
+                    node.classList.add('overcrowded');
+                }
+                
+                // Find arrivals for this station using multiple matching strategies
+                const stationArrivals = realtimeData.arrivals.filter(arrival => {
+                    if (!arrival.stationName) return false;
+                    
+                    // Strategy 1: Exact match
+                    if (arrival.stationName === station.name) {
+                        console.log(`Exact match: ${station.name} = ${arrival.stationName}`);
+                        return true;
+                    }
+                    
+                    // Strategy 2: Match by stop ID
+                    if (arrival.stopId && arrival.stopId.replace(/[NS]$/, '') === station.id) {
+                        console.log(`Stop ID match: ${station.id} = ${arrival.stopId}`);
+                        return true;
+                    }
+                    
+                    // Strategy 3: Partial name match
+                    const stationKey = station.name.split('–')[0].split('-')[0].trim();
+                    const arrivalKey = arrival.stationName.split('–')[0].split('-')[0].trim();
+                    if (stationKey === arrivalKey) {
+                        console.log(`Partial match: ${stationKey} = ${arrivalKey}`);
+                        return true;
+                    }
+                    
+                    // Strategy 4: Contains match
+                    if (arrival.stationName.includes(stationKey) || stationKey.includes(arrival.stationName)) {
+                        console.log(`Contains match: ${stationKey} in ${arrival.stationName}`);
+                        return true;
+                    }
+                    
+                    return false;
+                });
+
+                if (stationArrivals.length > 0) {
+                    // Sort by arrival time and get the next one
+                    const sortedArrivals = stationArrivals.sort((a, b) => a.epoch - b.epoch);
+                    const nextArrival = sortedArrivals[0];
+                    const arrivalTime = new Date(nextArrival.epoch * 1000);
+                    const now = Date.now();
+                    const timeDiff = arrivalTime - now;
+
+                    // Update node state based on arrival time
+                    if (timeDiff < 60000) { // Less than 1 minute
+                        node.classList.add('current');
+                    } else if (timeDiff < 300000) { // Less than 5 minutes
+                        node.classList.add('regular');
+                    } else {
+                        node.classList.add('previous');
+                    }
+
+                    // Update human figures for all stations based on real-time data
+                    let crowdValue = null;
+                    if (nextArrival.ridership && nextArrival.ridership.averageRidership > 0) {
+                        crowdValue = nextArrival.ridership.averageRidership;
+                    } else if (station.crowd) {
+                        crowdValue = station.crowd;
+                    }
+                    
+                    // Update human figures for any station with crowd data
+                    if (crowdValue && crowdValue > 0) {
+                        const nodeContainer = container;
+                        let humanFigures = nodeContainer.querySelector('.human-figures');
+                        
+                        if (!humanFigures) {
+                            // Create human figures if they don't exist
+                            humanFigures = document.createElement('div');
+                            humanFigures.className = 'human-figures';
+                            nodeContainer.appendChild(humanFigures);
+                        }
+                        
+                        // Update figure count based on exponential crowd density scale
+                        const figureCount = Math.min(8, Math.max(1, Math.floor(Math.pow(crowdValue / 30, 0.7))));
+                        humanFigures.innerHTML = '';
+                        for (let i = 0; i < figureCount; i++) {
+                            const human = document.createElement('div');
+                            human.className = 'human-figure';
+                            human.innerHTML = '👤';
+                            humanFigures.appendChild(human);
+                        }
+                        
+                        // Update node color based on figure count (red only for >2 figures)
+                        if (figureCount > 2) {
+                            node.classList.add('overcrowded');
+                        } else {
+                            node.classList.remove('overcrowded');
+                        }
+                    } else {
+                        // Remove human figures if station has no crowd data
+                        const humanFigures = container.querySelector('.human-figures');
+                        if (humanFigures) {
+                            humanFigures.remove();
+                        }
+                        // Remove overcrowded class if no crowd data
+                        node.classList.remove('overcrowded');
+                    }
+                } else {
+                    node.classList.add('regular');
+                    
+                    // Human figures are already created during initial rendering for all stations with crowd data
+                }
+            });
+
+            // Flash header if there's a current train
+            const hasCurrent = document.querySelector('.node.current');
+            const header = document.querySelector('.header');
+            if (hasCurrent) {
+                header.classList.add('flash');
+            } else {
+                header.classList.remove('flash');
+            }
+        }
 
         // Render Stations
         const routeLane = document.getElementById('route-lane');
@@ -660,7 +1862,7 @@
         let xPosition = 80; // Start padding
         const nodePositions = [];
 
-        stations.forEach((station, index) => {
+        gLineStations.forEach((station, index) => {
             const nodeContainer = document.createElement('div');
             nodeContainer.className = 'node-container';
             nodeContainer.style.left = `${xPosition}px`;
@@ -677,10 +1879,7 @@
                 `;
                 nodeContainer.appendChild(ellipsisNode);
 
-                // Hill connector (smaller for ellipsis)
-                const hill = document.createElement('div');
-                hill.className = `hill-connector ellipsis ${station.position}`;
-                nodeContainer.appendChild(hill);
+                // No hill connector for ellipsis
 
                 // Ellipsis count label
                 const label = document.createElement('div');
@@ -694,10 +1893,69 @@
                 node.className = `node ${station.type} ${station.state}`;
                 nodeContainer.appendChild(node);
 
-                // Hill connector
-                const hill = document.createElement('div');
-                hill.className = `hill-connector ${station.position}`;
-                nodeContainer.appendChild(hill);
+                // Add human figures for all stations based on crowd numbers
+                if (station.crowd && station.crowd > 0) {
+                    const humanFigures = document.createElement('div');
+                    humanFigures.className = 'human-figures';
+                    
+                    // Create human figures based on exponential crowd density scale
+                    const figureCount = Math.min(8, Math.max(1, Math.floor(Math.pow(station.crowd / 30, 0.7))));
+                    for (let i = 0; i < figureCount; i++) {
+                        const human = document.createElement('div');
+                        human.className = 'human-figure';
+                        human.innerHTML = '👤';
+                        humanFigures.appendChild(human);
+                    }
+                    
+                    nodeContainer.appendChild(humanFigures);
+                }
+
+                // Add alert indicators for stations with alerts
+                if (station.alerts && station.alerts.length > 0) {
+                    station.alerts.forEach(alertType => {
+                        const alertIndicator = document.createElement('div');
+                        alertIndicator.className = `station-alert ${alertType}`;
+                        
+                        // Create icon span
+                        const iconSpan = document.createElement('span');
+                        iconSpan.className = 'alert-icon';
+                        
+                        // Set tooltip text and icon based on alert type
+                        let alertText = '';
+                        let iconText = '';
+                        switch(alertType) {
+                            case 'warning':
+                                alertText = 'Service Warning';
+                                iconText = '⚠';
+                                break;
+                            case 'delay':
+                                alertText = 'Delays Expected';
+                                iconText = '⏱';
+                                break;
+                            case 'suspended':
+                                alertText = 'Service Suspended';
+                                iconText = '✕';
+                                break;
+                            case 'planned':
+                                alertText = 'Planned Work';
+                                iconText = 'ⓘ';
+                                break;
+                            default:
+                                alertText = 'Alert';
+                                iconText = '!';
+                        }
+                        iconSpan.textContent = iconText;
+                        alertIndicator.appendChild(iconSpan);
+                        
+                        // Create text label
+                        const textSpan = document.createElement('span');
+                        textSpan.className = 'alert-text';
+                        textSpan.textContent = alertText;
+                        alertIndicator.appendChild(textSpan);
+                        
+                        nodeContainer.appendChild(alertIndicator);
+                    });
+                }
 
                 // Station Label
                 const label = document.createElement('div');
@@ -707,17 +1965,14 @@
 
                 let labelHTML = station.name;
 
-                // Add delay warning
+                // Add delay warning (only if station has delays from real-time data)
                 if (station.delayed) {
                     labelHTML += `<span class="icon-warning">⚠</span>`;
                 }
 
-                // Add crowd chip
-                if (station.crowd) {
-                    labelHTML += `<span class="crowd-chip">👥 ${station.crowd}</span>`;
-                }
+                // Don't show crowd chips - will use human figures instead
 
-                // Add transfers
+                // Add transfers (only show if station has transfers)
                 if (station.transfers && station.transfers.length > 0) {
                     labelHTML += '<span class="transfer-badges">';
                     station.transfers.forEach(line => {
@@ -736,9 +1991,9 @@
         });
 
         // Add connecting lines between stations
-        for (let i = 0; i < stations.length - 1; i++) {
-            const currentStation = stations[i];
-            const nextStation = stations[i + 1];
+        for (let i = 0; i < gLineStations.length - 1; i++) {
+            const currentStation = gLineStations[i];
+            const nextStation = gLineStations[i + 1];
             const currentPos = nodePositions[i];
             const nextPos = nodePositions[i + 1];
             const lineWidth = nextPos - currentPos;
@@ -748,6 +2003,7 @@
             connectionLine.className = 'connection-line';
             connectionLine.style.left = `${currentPos}px`;
             connectionLine.style.width = `${lineWidth}px`;
+            connectionLine.dataset.index = String(i);
 
             // Determine line type based on station positions
             if (currentStation.type === 'ellipsis' || nextStation.type === 'ellipsis') {
@@ -792,8 +2048,8 @@
         for (let i = 1; i < nodePositions.length; i++) {
             const x1 = nodePositions[i - 1];
             const x2 = nodePositions[i];
-            const prevIsEllipsis = stations[i - 1]?.type === 'ellipsis';
-            const nextIsEllipsis = stations[i]?.type === 'ellipsis';
+            const prevIsEllipsis = gLineStations[i - 1]?.type === 'ellipsis';
+            const nextIsEllipsis = gLineStations[i]?.type === 'ellipsis';
             const op = (prevIsEllipsis && nextIsEllipsis) ? 0.25 : 0.5; // 20–30% between ellipsis clusters, else 40–50%
             baselineGroup.appendChild(makeLine(x1, x2, op));
         }
@@ -821,27 +2077,723 @@
         rightFade.setAttribute('fill', 'url(#grad-right)');
         overlaysGroup.appendChild(rightFade);
 
-        // Direction arrows every 400–ish px
-        const routeWidth = xPosition + 64;
-        for (let ax = 400; ax < routeWidth; ax += 400) {
-            const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-            poly.setAttribute('points', `${ax},${centerY} ${ax + 8},${centerY - 4} ${ax + 8},${centerY + 4}`);
-            poly.setAttribute('class', 'direction-arrow');
-            arrowsGroup.appendChild(poly);
+        // Direction arrows removed - no longer needed
+
+        // Initialize real-time data and start auto-refresh
+        fetchRealtimeData();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(fetchRealtimeData, 30000);
+
+        // Simulate alert changes every 60 seconds
+        setInterval(() => {
+            // Randomly change alert counts
+            alertTypes.forEach(alert => {
+                if (Math.random() < 0.3) { // 30% chance to change
+                    alert.count = Math.floor(Math.random() * 3); // 0-2 alerts
+                }
+            });
+            
+            // Randomly assign alerts to stations
+            gLineStations.forEach(station => {
+                station.alerts = [];
+                if (Math.random() < 0.15) { // 15% chance for each station to have an alert
+                    const alertTypes = ['warning', 'delay', 'suspended', 'planned'];
+                    const randomAlert = alertTypes[Math.floor(Math.random() * alertTypes.length)];
+                    station.alerts.push(randomAlert);
+                }
+            });
+            
+            updateStatusStrip();
+            updateStationAlerts();
+        }, 60000);
+
+        // Update station alert indicators
+        function updateStationAlerts() {
+            const stationContainers = document.querySelectorAll('.node-container');
+            
+            stationContainers.forEach((container, index) => {
+                const station = gLineStations[index];
+                if (!station) return;
+                
+                // Remove existing alert indicators
+                const existingAlerts = container.querySelectorAll('.station-alert');
+                existingAlerts.forEach(alert => alert.remove());
+                
+                // Add new alert indicators
+                if (station.alerts && station.alerts.length > 0) {
+                    station.alerts.forEach(alertType => {
+                        const alertIndicator = document.createElement('div');
+                        alertIndicator.className = `station-alert ${alertType}`;
+                        
+                        // Create icon span
+                        const iconSpan = document.createElement('span');
+                        iconSpan.className = 'alert-icon';
+                        
+                        // Set tooltip text and icon based on alert type
+                        let alertText = '';
+                        let iconText = '';
+                        switch(alertType) {
+                            case 'warning':
+                                alertText = 'Service Warning';
+                                iconText = '⚠';
+                                break;
+                            case 'delay':
+                                alertText = 'Delays Expected';
+                                iconText = '⏱';
+                                break;
+                            case 'suspended':
+                                alertText = 'Service Suspended';
+                                iconText = '✕';
+                                break;
+                            case 'planned':
+                                alertText = 'Planned Work';
+                                iconText = 'ⓘ';
+                                break;
+                            default:
+                                alertText = 'Alert';
+                                iconText = '!';
+                        }
+                        iconSpan.textContent = iconText;
+                        alertIndicator.appendChild(iconSpan);
+                        
+                        // Create text label
+                        const textSpan = document.createElement('span');
+                        textSpan.className = 'alert-text';
+                        textSpan.textContent = alertText;
+                        alertIndicator.appendChild(textSpan);
+                        
+                        container.appendChild(alertIndicator);
+                    });
+                }
+            });
         }
 
-        // Dashed segment through skipped station (±60 px)
-        const skippedIndex = stations.findIndex(s => s.state === 'skipped');
-        if (skippedIndex !== -1) {
-            const sx = nodePositions[skippedIndex];
-            overlaysGroup.appendChild(makeLine(sx - 60, sx + 60, 0.8, true));
+        // Redraw spline based on visible stations
+        function redrawSpline() {
+            console.log('Redrawing spline...');
+            const splineSvg = document.getElementById('spline-svg');
+            const baselineGroup = splineSvg.querySelector('#spline-baseline');
+            const overlaysGroup = splineSvg.querySelector('#spline-overlays');
+            const arrowsGroup = splineSvg.querySelector('#spline-arrows');
+            const centerY = 30;
+            
+            // Clear existing spline elements
+            baselineGroup.innerHTML = '';
+            overlaysGroup.innerHTML = '';
+            arrowsGroup.innerHTML = '';
+            
+            // Helper to create a line
+            function makeLine(x1, x2, opacity, dashed = false) {
+                const ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                ln.setAttribute('x1', x1);
+                ln.setAttribute('y1', centerY);
+                ln.setAttribute('x2', x2);
+                ln.setAttribute('y2', centerY);
+                ln.setAttribute('stroke', getComputedStyle(document.documentElement).getPropertyValue('--route-color-strong') || 'rgba(108,190,69,0.9)');
+                ln.setAttribute('stroke-width', 4);
+                ln.setAttribute('opacity', opacity);
+                ln.setAttribute('filter', 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))');
+                if (dashed) ln.setAttribute('stroke-dasharray', '8 6');
+                return ln;
+            }
+            
+            // Calculate new positions for visible stations with adjusted spacing
+            const visiblePositions = [];
+            const visibleIndices = [];
+            const stationContainers = document.querySelectorAll('.node-container');
+            
+            // First pass: collect visible station indices
+            stationContainers.forEach((container, index) => {
+                if (!container.classList.contains('station-folded')) {
+                    visibleIndices.push(index);
+                }
+            });
+            
+            // Second pass: calculate positions with adjusted spacing
+            let currentX = 80; // Start position
+            for (let i = 0; i < visibleIndices.length; i++) {
+                visiblePositions.push(currentX);
+                console.log(`Visible station ${visibleIndices[i]}: repositioned to x=${currentX}`);
+                
+                // Calculate spacing to next station
+                if (i < visibleIndices.length - 1) {
+                    const gap = visibleIndices[i + 1] - visibleIndices[i];
+                    if (gap === 1) {
+                        // Consecutive stations: 160px spacing
+                        currentX += 160;
+                    } else {
+                        // Gap with folded stations: base 160px + (gap * 5px)
+                        const extraSpacing = gap * 5;
+                        currentX += 160 + extraSpacing;
+                    }
+                }
+            }
+            
+            console.log('Visible positions:', visiblePositions);
+            console.log('Visible indices:', visibleIndices);
+            
+            // Reposition visible station containers and adjust top/bottom positions
+            stationContainers.forEach((container, index) => {
+                if (!container.classList.contains('station-folded')) {
+                    const visibleIndex = visibleIndices.indexOf(index);
+                    if (visibleIndex !== -1) {
+                        container.style.left = `${visiblePositions[visibleIndex]}px`;
+                        
+                        // Adjust top/bottom position for alternating pattern
+                        const label = container.querySelector('.station-label');
+                        if (label) {
+                            // Remove existing position classes
+                            label.classList.remove('top', 'bottom');
+                            // Add new position based on visible index (alternating)
+                            const newPosition = visibleIndex % 2 === 0 ? 'top' : 'bottom';
+                            label.classList.add(newPosition);
+                            console.log(`Station ${index} (visible ${visibleIndex}): position=${newPosition}`);
+                        }
+                    }
+                }
+            });
+            
+            // Remove all old connection lines
+            const oldConnectionLines = document.querySelectorAll('.connection-line');
+            oldConnectionLines.forEach(line => line.remove());
+            
+            // Create new connection lines for consecutive visible stations
+            const routeLane = document.querySelector('.route-lane');
+            for (let i = 1; i < visiblePositions.length; i++) {
+                const prevIndex = visibleIndices[i - 1];
+                const currIndex = visibleIndices[i];
+                const gap = currIndex - prevIndex;
+                
+                // Only create connection line if stations are consecutive
+                if (gap === 1) {
+                    const currentPos = visiblePositions[i - 1];
+                    const nextPos = visiblePositions[i];
+                    const lineWidth = nextPos - currentPos;
+                    
+                    const connectionLine = document.createElement('div');
+                    connectionLine.className = 'connection-line';
+                    connectionLine.style.left = `${currentPos}px`;
+                    connectionLine.style.width = `${lineWidth}px`;
+                    connectionLine.dataset.index = String(prevIndex);
+                    
+                    // Determine line type based on visible index positions (alternating)
+                    const prevVisibleIndex = i - 1;
+                    const currVisibleIndex = i;
+                    const prevPosition = prevVisibleIndex % 2 === 0 ? 'top' : 'bottom';
+                    const currPosition = currVisibleIndex % 2 === 0 ? 'top' : 'bottom';
+                    
+                    if (prevPosition === 'top' && currPosition === 'top') {
+                        connectionLine.classList.add('top');
+                    } else if (prevPosition === 'bottom' && currPosition === 'bottom') {
+                        connectionLine.classList.add('bottom');
+                    } else {
+                        connectionLine.classList.add('both');
+                    }
+                    
+                    routeLane.appendChild(connectionLine);
+                    console.log(`Created connection line: station ${prevIndex} to ${currIndex} (x=${currentPos}, width=${lineWidth}, ${prevPosition}→${currPosition})`);
+                }
+            }
+            
+            // Draw baseline segments between visible nodes
+            for (let i = 1; i < visiblePositions.length; i++) {
+                const prevIndex = visibleIndices[i - 1];
+                const currIndex = visibleIndices[i];
+                const gap = currIndex - prevIndex;
+                
+                // Only draw spline if stations are consecutive
+                if (gap === 1) {
+                    const x1 = visiblePositions[i - 1];
+                    const x2 = visiblePositions[i];
+                    baselineGroup.appendChild(makeLine(x1, x2, 0.5));
+                    console.log(`Drawing spline: station ${prevIndex} to ${currIndex} (x=${x1} to ${x2}, spacing=160px)`);
+                } else {
+                    console.log(`Skipping spline: station ${prevIndex} to ${currIndex} (gap=${gap} stations, folded-line-block will handle with 200px spacing)`);
+                }
+            }
+            
+            // Near-node bright ramps ±10 px for visible nodes
+            visiblePositions.forEach(x => {
+                overlaysGroup.appendChild(makeLine(x - 10, x + 10, 1));
+            });
+            
+            // Terminus fades beyond ends
+            if (visiblePositions.length > 0) {
+                const fadeExtent = 60;
+                
+                const leftFade = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                leftFade.setAttribute('x', String(visiblePositions[0] - fadeExtent));
+                leftFade.setAttribute('y', String(centerY - 1.5));
+                leftFade.setAttribute('width', String(fadeExtent));
+                leftFade.setAttribute('height', '3');
+                leftFade.setAttribute('fill', 'url(#grad-left)');
+                overlaysGroup.appendChild(leftFade);
+                
+                const rightFade = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rightFade.setAttribute('x', String(visiblePositions[visiblePositions.length - 1]));
+                rightFade.setAttribute('y', String(centerY - 1.5));
+                rightFade.setAttribute('width', String(fadeExtent));
+                rightFade.setAttribute('height', '3');
+                rightFade.setAttribute('fill', 'url(#grad-right)');
+                overlaysGroup.appendChild(rightFade);
+                
+                // Direction arrows removed - replaced by train arrival animation
+            }
+            
+            console.log('Spline redrawn');
+            
+            // Return positions and indices for ellipsis/folded-line-block creation
+            return { visiblePositions, visibleIndices };
         }
 
-        // Header flash when a current station exists
-        const hasCurrent = stations.some(s => s.state === 'current');
-        if (hasCurrent) {
-            document.querySelector('.header')?.classList.add('flash');
+        // Update station folding with ellipsis groups
+        function updateStationFolding() {
+            console.log('updateStationFolding called, isFolded:', isFolded);
+            
+            if (!isFolded) {
+                console.log('Unfolding - showing all stations');
+                // Show all stations and remove ellipsis groups
+                const stationContainers = document.querySelectorAll('.node-container');
+                console.log('Found', stationContainers.length, 'station containers');
+                stationContainers.forEach((container, index) => {
+                    container.classList.remove('station-folded');
+                    // Reset to original position
+                    container.style.left = `${80 + (index * 160)}px`;
+                    
+                    // Restore original top/bottom position
+                    const station = gLineStations[index];
+                    const label = container.querySelector('.station-label');
+                    if (label && station) {
+                        label.classList.remove('top', 'bottom');
+                        label.classList.add(station.position);
+                    }
+                });
+                
+                // Remove existing ellipsis groups
+                const existingEllipsis = document.querySelectorAll('.ellipsis-group');
+                console.log('Removing', existingEllipsis.length, 'ellipsis groups');
+                existingEllipsis.forEach(ellipsis => ellipsis.remove());
+                
+                // Remove folded line blocks
+                const existingFoldedLines = document.querySelectorAll('.folded-line-block');
+                console.log('Removing', existingFoldedLines.length, 'folded line blocks');
+                existingFoldedLines.forEach(line => line.remove());
+                
+                // Remove old connection lines
+                const oldConnectionLines = document.querySelectorAll('.connection-line');
+                oldConnectionLines.forEach(line => line.remove());
+                
+                // Recreate connection lines at original positions
+                const routeLane = document.querySelector('.route-lane');
+                for (let i = 0; i < gLineStations.length - 1; i++) {
+                    const currentPos = 80 + (i * 160);
+                    const nextPos = 80 + ((i + 1) * 160);
+                    const lineWidth = nextPos - currentPos;
+                    
+                    const connectionLine = document.createElement('div');
+                    connectionLine.className = 'connection-line';
+                    connectionLine.style.left = `${currentPos}px`;
+                    connectionLine.style.width = `${lineWidth}px`;
+                    connectionLine.dataset.index = String(i);
+                    
+                    const currentStation = gLineStations[i];
+                    const nextStation = gLineStations[i + 1];
+                    
+                    if (currentStation.position === 'top' && nextStation.position === 'top') {
+                        connectionLine.classList.add('top');
+                    } else if (currentStation.position === 'bottom' && nextStation.position === 'bottom') {
+                        connectionLine.classList.add('bottom');
+                    } else {
+                        connectionLine.classList.add('both');
+                    }
+                    
+                    routeLane.appendChild(connectionLine);
+                }
+                console.log('Recreated', gLineStations.length - 1, 'connection lines');
+                
+                // Redraw spline with all stations
+                redrawSpline();
+                
+                updateFoldedCount();
+                return;
+            }
+            
+            // Create ellipsis groups for folded stations
+            console.log('Folding - creating ellipsis groups');
+            const stationContainers = document.querySelectorAll('.node-container');
+            const routeLane = document.querySelector('.route-lane');
+            console.log('Found', stationContainers.length, 'station containers');
+            console.log('Route lane:', routeLane);
+            
+            // Remove existing ellipsis groups
+            const existingEllipsis = document.querySelectorAll('.ellipsis-group');
+            existingEllipsis.forEach(ellipsis => ellipsis.remove());
+            
+            // Remove existing folded line blocks
+            const existingFoldedLines = document.querySelectorAll('.folded-line-block');
+            existingFoldedLines.forEach(line => line.remove());
+            
+            // Show all connection lines initially (we'll hide specific ones later)
+            const allConnectionLines = document.querySelectorAll('.connection-line');
+            allConnectionLines.forEach(line => {
+                line.style.display = 'block';
+            });
+            
+            let totalFolded = 0;
+            
+            stationContainers.forEach((container, index) => {
+                const station = gLineStations[index];
+                if (!station) return;
+                
+                const shouldFold = !isImportantStation(station);
+                console.log(`Station ${index} (${station.name}): shouldFold=${shouldFold}, crowd=${station.crowd}, transfers=${station.transfers.length}, alerts=${station.alerts.length}`);
+                
+                if (shouldFold) {
+                    // Hide the station
+                    container.classList.add('station-folded');
+                    totalFolded++;
+                } else {
+                    // Show the station
+                    container.classList.remove('station-folded');
+                }
+            });
+            
+            console.log('Total stations folded:', totalFolded);
+            
+            // Redraw spline with only visible stations and get new positions
+            const { visiblePositions, visibleIndices } = redrawSpline();
+            
+            // Now create ellipsis groups and folded line blocks with correct positions
+            let ellipsisStartIndex = -1;
+            let foldedCount = 0;
+            
+            for (let i = 0; i < visibleIndices.length; i++) {
+                const currentIndex = visibleIndices[i];
+                const nextIndex = visibleIndices[i + 1];
+                
+                if (nextIndex !== undefined) {
+                    const gap = nextIndex - currentIndex;
+                    if (gap > 1) {
+                        // There's a folded range between current and next
+                        const prevStationNewX = visiblePositions[i];
+                        const nextStationNewX = visiblePositions[i + 1];
+                        const foldedStations = gap - 1;
+                        console.log(`Creating folded elements between station ${currentIndex} and ${nextIndex}`);
+                        createEllipsisGroup(currentIndex + 1, foldedStations, routeLane, prevStationNewX, nextStationNewX);
+                        createFoldedLineBlock(currentIndex + 1, foldedStations, routeLane, prevStationNewX, nextStationNewX);
+                    }
+                }
+            }
+            
+            updateFoldedCount();
         }
+
+        // Create ellipsis group element
+        function createEllipsisGroup(startIndex, count, routeLane, prevStationNewX, nextStationNewX) {
+            console.log(`createEllipsisGroup: startIndex=${startIndex}, count=${count}, prevStationNewX=${prevStationNewX}, nextStationNewX=${nextStationNewX}`);
+            const ellipsisGroup = document.createElement('div');
+            ellipsisGroup.className = 'ellipsis-group';
+            
+            // Position at the center of the folded-line-block
+            // Center is at the midpoint between prev and next stations
+            const xPosition = (prevStationNewX + nextStationNewX) / 2;
+            ellipsisGroup.style.left = `${xPosition}px`;
+            ellipsisGroup.style.transform = 'translateX(-50%)';
+            console.log(`Ellipsis group positioned at x=${xPosition}px (center of folded-line-block)`);
+            
+            // Create ellipsis node
+            const ellipsisNode = document.createElement('div');
+            ellipsisNode.className = 'node-ellipsis';
+            ellipsisNode.textContent = '• • •';
+            ellipsisGroup.appendChild(ellipsisNode);
+            
+            // Create ellipsis label
+            const ellipsisLabel = document.createElement('div');
+            ellipsisLabel.className = 'ellipsis-label';
+            ellipsisLabel.textContent = `${count} stop${count > 1 ? 's' : ''}`;
+            ellipsisGroup.appendChild(ellipsisLabel);
+            
+            // Insert the ellipsis group into the route lane
+            routeLane.appendChild(ellipsisGroup);
+            console.log('Ellipsis group added to route lane');
+        }
+
+        // Create folded line block element
+        function createFoldedLineBlock(startIndex, count, routeLane, prevStationNewX, nextStationNewX) {
+            // The folded-line-block width is calculated based on the actual distance
+            // between the previous and next visible stations
+            
+            // Width is the actual distance between stations
+            const lineWidth = nextStationNewX - prevStationNewX;
+            
+            // The line starts at the previous station's new position
+            const startPosition = prevStationNewX;
+            
+            console.log(`createFoldedLineBlock: folding ${count} stations (indices ${startIndex} to ${startIndex + count - 1})`);
+            console.log(`  Previous visible station at new x=${prevStationNewX}px`);
+            console.log(`  Next visible station at new x=${nextStationNewX}px`);
+            console.log(`  Line: startPos=${startPosition}px, width=${lineWidth}px (160px + ${count} * 5px = ${160 + count * 5}px)`);
+            
+            // Create the folded line block
+            const foldedLineBlock = document.createElement('div');
+            foldedLineBlock.className = 'folded-line-block';
+            foldedLineBlock.style.left = `${startPosition}px`;
+            foldedLineBlock.style.width = `${lineWidth}px`;
+            
+            // Insert the folded line block into the route lane
+            routeLane.appendChild(foldedLineBlock);
+            console.log('Folded line block added to route lane');
+        }
+
+        // Hide connection lines that fall within the folded range
+        function hideConnectionLinesForRange(startIndex, count) {
+            console.log(`hideConnectionLinesForRange: startIndex=${startIndex}, count=${count}`);
+            
+            // Hide connection lines between and around folded stations
+            // We need to hide lines from (startIndex-1) to (startIndex+count-1)
+            // This covers:
+            // - Line from previous visible station to first folded station
+            // - All lines between folded stations
+            // - Line from last folded station to next visible station
+            
+            const start = Math.max(0, startIndex - 1);
+            const end = startIndex + count;
+            
+            for (let i = start; i < end; i++) {
+                const line = document.querySelector(`.connection-line[data-index="${i}"]`);
+                if (line) {
+                    console.log(`Hiding connection line ${i}`);
+                    line.style.display = 'none';
+                } else {
+                    console.log(`Connection line ${i} not found`);
+                }
+            }
+        }
+
+        // Check if station is important (should not be folded)
+        function isImportantStation(station) {
+            // Keep terminuses
+            if (station.type === 'terminus') return true;
+            
+            // Keep stations with alerts
+            if (station.alerts && station.alerts.length > 0) return true;
+            
+            // Keep very crowded stations (>150 people)
+            if (station.crowd > 150) return true;
+            
+            // Keep stations with major transfers (more than just G line transfers)
+            // Note: Many stations show ['F'] as they're on the F line before switching to G
+            // We should fold these if they don't meet other criteria
+            if (station.transfers && station.transfers.length > 1) return true;
+            
+            return false;
+        }
+
+        // Train arrival animation
+        let trainAnimations = new Map(); // trainId -> { element, currentStationIndex, targetStationIndex }
+
+        function updateTrainAnimations() {
+            if (!realtimeData || !realtimeData.arrivals) return;
+
+            const routeLane = document.querySelector('.route-lane');
+            if (!routeLane) return;
+
+            // Get current visible station positions
+            const stationContainers = document.querySelectorAll('.node-container');
+            const visibleStations = [];
+            stationContainers.forEach((container, index) => {
+                if (!container.classList.contains('station-folded')) {
+                    const station = gLineStations[index];
+                    if (station) {
+                        visibleStations.push({
+                            index: index,
+                            name: station.name,
+                            x: parseInt(container.style.left) || (80 + index * 160)
+                        });
+                    }
+                }
+            });
+
+            // Track active trains from API data
+            const activeTrains = new Set();
+
+            realtimeData.arrivals.forEach(arrival => {
+                if (!arrival.trainId || !arrival.minutesAway) return;
+
+                const trainId = arrival.trainId;
+                activeTrains.add(trainId);
+
+                // Find current and next station
+                const currentStationIndex = gLineStations.findIndex(s => 
+                    s.name === arrival.stopName || s.id === arrival.stopId
+                );
+
+                if (currentStationIndex === -1) return;
+
+                // Calculate train position based on minutesAway
+                const minutesAway = parseInt(arrival.minutesAway);
+                const nextStationIndex = currentStationIndex + 1;
+
+                if (nextStationIndex >= gLineStations.length) return;
+
+                // Get visible positions
+                const currentVisible = visibleStations.find(s => s.index === currentStationIndex);
+                const nextVisible = visibleStations.find(s => s.index === nextStationIndex);
+
+                if (!currentVisible || !nextVisible) return;
+
+                // Calculate train position (interpolate between stations based on time)
+                // Assume 2 minutes between stations, interpolate position
+                const progress = Math.max(0, Math.min(1, (2 - minutesAway) / 2));
+                const trainX = currentVisible.x + (nextVisible.x - currentVisible.x) * progress;
+
+                // Create or update train icon
+                let trainData = trainAnimations.get(trainId);
+                if (!trainData) {
+                    const trainIcon = document.createElement('div');
+                    trainIcon.className = 'train-icon';
+                    trainIcon.dataset.trainId = trainId;
+                    trainIcon.style.left = `${trainX}px`;
+                    routeLane.appendChild(trainIcon);
+
+                    trainData = {
+                        element: trainIcon,
+                        currentStationIndex: currentStationIndex,
+                        targetStationIndex: nextStationIndex
+                    };
+                    trainAnimations.set(trainId, trainData);
+                } else {
+                    // Update position smoothly
+                    trainData.element.style.left = `${trainX}px`;
+                    trainData.currentStationIndex = currentStationIndex;
+                    trainData.targetStationIndex = nextStationIndex;
+                }
+
+                // Add arriving class if close
+                if (minutesAway <= 1) {
+                    trainData.element.classList.add('arriving');
+                    
+                    // Add arriving animation to target station
+                    const targetStationContainer = stationContainers[nextStationIndex];
+                    if (targetStationContainer) {
+                        const targetNode = targetStationContainer.querySelector('.node');
+                        if (targetNode && !targetNode.classList.contains('train-approaching') && !targetNode.classList.contains('train-departing')) {
+                            targetNode.classList.add('train-approaching');
+                            
+                            // Trigger alert expansion animation
+                            const alerts = targetStationContainer.querySelectorAll('.station-alert');
+                            alerts.forEach(alert => {
+                                alert.classList.remove('expanding');
+                                // Force reflow to restart animation
+                                void alert.offsetWidth;
+                                alert.classList.add('expanding');
+                            });
+                            
+                            // After arriving animation completes, add departing animation
+                            setTimeout(() => {
+                                if (targetNode.classList.contains('train-approaching')) {
+                                    targetNode.classList.remove('train-approaching');
+                                    targetNode.classList.add('train-departing');
+                                    
+                                    // Remove departing class after animation completes
+                                    setTimeout(() => {
+                                        targetNode.classList.remove('train-departing');
+                                    }, 1500);
+                                }
+                            }, 1500); // Duration of arriving animation
+                        }
+                    }
+                } else {
+                    trainData.element.classList.remove('arriving');
+                    
+                    // Note: Don't remove train-approaching/departing classes here
+                    // Let them complete their animations
+                }
+
+                console.log(`Train ${trainId}: at station ${currentStationIndex}, ${minutesAway} min to ${nextStationIndex}, x=${trainX}`);
+            });
+
+            // Remove trains that are no longer in the data
+            trainAnimations.forEach((trainData, trainId) => {
+                if (!activeTrains.has(trainId)) {
+                    trainData.element.remove();
+                    trainAnimations.delete(trainId);
+                    console.log(`Removed train ${trainId} from animation`);
+                }
+            });
+        }
+
+        // Update folded count in status strip
+        function updateFoldedCount() {
+            const statusItems = document.querySelectorAll('.status-item');
+            
+            if (!isFolded) {
+                // Reset to normal crowd info
+                if (statusItems[2]) {
+                    const overcrowdedStations = gLineStations.filter(station => station.crowd >= 120).length;
+                    statusItems[2].textContent = `Crowd ≥ 120 ppl (${overcrowdedStations} stations)`;
+                }
+                return;
+            }
+            
+            const foldedCount = gLineStations.filter(station => !isImportantStation(station)).length;
+            
+            // Update crowd info to show folded count
+            if (statusItems[2]) {
+                const overcrowdedStations = gLineStations.filter(station => station.crowd >= 120).length;
+                statusItems[2].textContent = `Crowd ≥ 120 ppl (${overcrowdedStations} stations) • Folded: ${foldedCount}`;
+            }
+        }
+
+        // Alert Modal Functions
+        function showAlertModal() {
+            const modal = document.getElementById('alertModal');
+            const alertList = document.getElementById('alertList');
+            
+            // Clear existing alerts
+            alertList.innerHTML = '';
+            
+            // Add active alerts
+            alertTypes.forEach(alert => {
+                if (alert.count > 0) {
+                    const alertItem = document.createElement('div');
+                    alertItem.className = `alert-item-detail alert-${alert.type}`;
+                    alertItem.innerHTML = `
+                        <div class="alert-icon">${alert.icon}</div>
+                        <div class="alert-info">
+                            <div class="alert-type">${alert.message}</div>
+                            <div class="alert-description">${alert.description}</div>
+                            <div class="alert-description" style="margin-top: 4px; font-style: italic;">${alert.details}</div>
+                        </div>
+                        <div class="alert-count">${alert.count}</div>
+                    `;
+                    alertList.appendChild(alertItem);
+                }
+            });
+            
+            // Show modal
+            modal.classList.add('show');
+        }
+
+        function closeAlertModal() {
+            const modal = document.getElementById('alertModal');
+            modal.classList.remove('show');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('alertModal').addEventListener('click', (e) => {
+            if (e.target.id === 'alertModal') {
+                closeAlertModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeAlertModal();
+            }
+        });
     </script>
 </body>
 </html>
