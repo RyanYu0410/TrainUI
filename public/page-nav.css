@@ -1,0 +1,40 @@
+/* Page-to-page arrow navigation (prev/next) */
+.page-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: rgba(11, 12, 16, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+}
+.page-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  color: #eaf0f6;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+.page-nav a:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+.page-nav a.page-nav-prev::before { content: "‹"; font-size: 1.4em; line-height: 1; }
+.page-nav a.page-nav-next::after { content: "›"; font-size: 1.4em; line-height: 1; }
+.page-nav a[href="#"] {
+  pointer-events: none;
+  opacity: 0.5;
+}
+/* Reserve space so content isn't under the bar */
+body { padding-top: 48px !important; }
+body.page-nav-none { padding-top: 0 !important; }

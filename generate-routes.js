@@ -29,7 +29,7 @@ const routes = [
 ];
 
 // Read the G line template
-const templatePath = path.join(__dirname, 'public', 'route-roadmap-horizontal.html');
+const templatePath = path.join(__dirname, 'public', 'Gtrain-roadmap.html');
 const template = fs.readFileSync(templatePath, 'utf8');
 
 // Generate files for each route

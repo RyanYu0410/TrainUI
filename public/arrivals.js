@@ -224,7 +224,8 @@ class ArrivalsApp {
                     <div style="font-size: 1.1rem; margin-bottom: 0.5rem;">⚠️ Error</div>
                     <div>${message}</div>
                     <div style="margin-top: 1rem; font-size: 0.9rem; color: #888;">
-                        Make sure the API endpoint is configured in your .env file
+                        Make sure the server is running (<code>node server.js</code>) and
+                        <code>MTA_API_KEY</code> is set to a real key in <code>.env</code>
                     </div>
                 </td>
             </tr>

@@ -13,12 +13,16 @@ const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Serve static files
+// Serve static files at both / and /public so both URLs work
 app.use(express.static(path.join(__dirname, "public")));
+app.use("/public", express.static(path.join(__dirname, "public")));
 
-// Route for home page
+// Route for nav page (formerly home)
 app.get("/home", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "home.html"));
+  res.sendFile(path.join(__dirname, "public", "nav.html"));
+});
+app.get("/nav", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "nav.html"));
 });
 
 // Route for train details page
@@ -36,22 +40,22 @@ app.get("/route-roadmap-mta", (req, res) => {
 });
 
 app.get("/subway-crowd-map", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "subway-crowd-map.html"));
+  res.sendFile(path.join(__dirname, "public", "Ctrain-test-roadmap.html"));
+});
+app.get("/Ctrain-test-roadmap", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "Ctrain-test-roadmap.html"));
 });
 
-app.get("/subway-horizontal-map", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "subway-horizontal-map.html"));
+app.get("/Gtrain-roadmap", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "Gtrain-roadmap.html"));
 });
 
-app.get("/route-roadmap-vertical", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "route-roadmap-vertical.html"));
-});
-
-// Route for route results page
-
-// Route for G train arrivals (original functionality)
+// Route for chart page (formerly index)
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(__dirname, "public", "chart.html"));
+});
+app.get("/chart", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "chart.html"));
 });
 
 const G_FEED_URL = "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g";
@@ -753,34 +757,24 @@ async function getStationRidership(stationName, lineId) {
 }
 
 // MTA API Feed URLs - These are the actual working feeds
+// Read feed URLs from .env (using the keys the user pasted)
+const _ace  = process.env.ace  || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace";
+const _bdfm = process.env.bdfm || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm";
+const _g    = process.env.g    || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g";
+const _jz   = process.env.jz   || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-jz";
+const _nqrw = process.env.nqrm || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw";
+const _l    = process.env.l    || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-l";
+const _1234567s = process.env["1234567s"] || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs";
+
 const MTA_FEEDS = {
-  // Individual line feeds (these work reliably)
-  'G': process.env.MTA_G_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g",
-  'L': process.env.MTA_L_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-l",
-  
-  // Combined feeds (contains numbered routes 1-7 and some express variants)
-  '1': process.env.MTA_1_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
-  '2': process.env.MTA_2_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
-  '3': process.env.MTA_3_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
-  '4': process.env.MTA_4_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
-  '5': process.env.MTA_5_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
-  '6': process.env.MTA_6_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
-  '7': process.env.MTA_7_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
-  
-  // Letter routes - now using proper dedicated feeds
-  'A': process.env.MTA_A_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace",
-  'C': process.env.MTA_C_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace",
-  'E': process.env.MTA_E_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace",
-  'B': process.env.MTA_B_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm",
-  'D': process.env.MTA_D_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm",
-  'F': process.env.MTA_F_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm",
-  'M': process.env.MTA_M_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm",
-  'J': process.env.MTA_J_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-jz",
-  'Z': process.env.MTA_Z_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-jz",
-  'N': process.env.MTA_N_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw",
-  'Q': process.env.MTA_Q_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw",
-  'R': process.env.MTA_R_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw",
-  'W': process.env.MTA_W_FEED_URL || "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw"
+  'G': _g,
+  'L': _l,
+  '1': _1234567s, '2': _1234567s, '3': _1234567s,
+  '4': _1234567s, '5': _1234567s, '6': _1234567s, '7': _1234567s,
+  'A': _ace,  'C': _ace,  'E': _ace,
+  'B': _bdfm, 'D': _bdfm, 'F': _bdfm, 'M': _bdfm,
+  'J': _jz,   'Z': _jz,
+  'N': _nqrw, 'Q': _nqrw, 'R': _nqrw, 'W': _nqrw,
 };
 
 // Enhanced station name mapping for all lines
@@ -1526,8 +1520,8 @@ async function fetchArrivalsForLine(lineId, feedUrl, retryCount = 0) {
     const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
     
     const response = await fetch(feedUrl, {
-      headers: { 
-        "x-api-key": process.env.MTA_API_KEY,
+      headers: {
+        "x-api-key": process.env.MTA_API_KEY || "",
         "User-Agent": "MTA-G-Site/2.0",
         "Accept": "application/x-protobuf",
         "Cache-Control": "no-cache"
@@ -1890,181 +1884,29 @@ Object.keys(MTA_FEEDS).forEach(lineId => {
   const endpoint = `/api/${lineId.toLowerCase()}-arrivals`;
   app.get(endpoint, async (req, res) => {
     const startTime = Date.now();
-    
+
     try {
       const feedUrl = MTA_FEEDS[lineId];
       const data = await fetchArrivalsForLine(lineId, feedUrl);
       
-      // Add performance metrics
       const responseTime = Date.now() - startTime;
-      data.responseTime = responseTime;
-      data.endpoint = endpoint;
-      
-      // Check if this is a letter route that's not available in current feeds
-      const isLetterRoute = /^[A-Z]$/.test(lineId);
-      const hasData = data.arrivals && data.arrivals.length > 0;
-      
-      if (isLetterRoute && !hasData) {
-        console.log(`Letter route ${lineId} not available in current feeds, returning demo data`);
-        const demoData = generateDemoData(lineId);
-        demoData.message = `Demo data - ${lineId} line not available in current MTA feeds`;
-        demoData.availableRoutes = data.availableRoutes || [];
-        demoData.responseTime = responseTime;
-        demoData.endpoint = endpoint;
-        return res.json(demoData);
-      }
-      
-      // Set appropriate cache headers
       res.set({
         'Cache-Control': 'public, max-age=30',
-        'X-Data-Quality': data.dataQuality || 'realtime',
-        'X-Response-Time': responseTime.toString(),
-        'X-Feed-Age': data.dataAge?.toString() || 'unknown'
+        'X-Response-Time': responseTime.toString()
       });
-      
       res.json(data);
     } catch (error) {
-      const responseTime = Date.now() - startTime;
-      console.error(`Error in ${endpoint}:`, error);
-      
-      // If no API key is configured, return demo data
-      if (!process.env.MTA_API_KEY) {
-        console.log(`No API key configured, returning demo data for ${lineId} line`);
-        const demoData = generateDemoData(lineId);
-        demoData.message = "Demo data - Configure MTA_API_KEY in .env for real data";
-        demoData.responseTime = responseTime;
-        demoData.endpoint = endpoint;
-        return res.json(demoData);
-      }
-      
-      // For other errors, return error with helpful message
-      res.status(500).json({ 
-        error: `Failed to load ${lineId} line arrivals`, 
-        details: String(error),
-        message: "Make sure the MTA API key and feed URLs are configured in your .env file",
-        demo: false,
-        responseTime: responseTime,
-        endpoint: endpoint,
+      console.error(`Error in ${endpoint}:`, error.message);
+      res.status(502).json({
+        error: `Failed to fetch ${lineId} line arrivals`,
+        details: error.message,
         timestamp: new Date().toISOString()
       });
     }
   });
 });
 
-app.get("/api/g-arrivals", async (req, res) => {
-  try {
-    const r = await fetch(G_FEED_URL, {
-      headers: { "x-api-key": process.env.MTA_API_KEY }
-    });
-
-    if (!r.ok) {
-      const text = await r.text().catch(() => "");
-      return res.status(r.status).json({ error: `MTA responded ${r.status}`, body: text });
-    }
-
-    const arrayBuffer = await r.arrayBuffer();
-    const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
-      new Uint8Array(arrayBuffer)
-    );
-
-    const arrivals = [];
-
-    for (const entity of feed.entity) {
-      if (!entity.tripUpdate) continue;
-
-      const routeId = entity.tripUpdate.trip?.routeId || "G";
-      const tripId = entity.tripUpdate.trip?.tripId || "";
-
-      for (const stu of entity.tripUpdate.stopTimeUpdate || []) {
-        const stopId = stu.stopId || "";
-        const dir = stopId.endsWith("N") ? "N" : stopId.endsWith("S") ? "S" : "";
-        const arrival = stu.arrival?.time?.toNumber?.() || stu.arrival?.time || null;
-        const departure = stu.departure?.time?.toNumber?.() || stu.departure?.time || null;
-
-        const now = Math.floor(Date.now() / 1000);
-        const t = arrival || departure;
-        if (!t || t < now - 60) continue;
-
-        // Extract base stop ID (remove N/S suffix for station name lookup)
-        const baseStopId = stopId.replace(/[NS]$/, "");
-        const stationName = G_STATION_NAMES[baseStopId] || `Stop ${baseStopId}`;
-        const destination = dir === "N" ? "Court Square" : dir === "S" ? "Church Avenue" : "G Line";
-        
-        arrivals.push({
-          routeId,
-          tripId,
-          stopId,
-          stationName,
-          direction: dir,
-          destination,
-          arrivalTime: arrival ? formatArrivalTime(arrival) : null,
-          departureTime: departure ? formatArrivalTime(departure) : null,
-          epoch: t,
-          ridership: null // Will be populated later
-        });
-      }
-    }
-
-    arrivals.sort((a, b) => a.epoch - b.epoch);
-
-    // Remove duplicate arrivals (same trip, same stop)
-    const uniqueArrivals = [];
-    const seen = new Set();
-    for (const arrival of arrivals) {
-      const key = `${arrival.tripId}_${arrival.stopId}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        uniqueArrivals.push(arrival);
-      }
-    }
-
-    // Add ridership data to arrivals (limit to first 30 to get better coverage)
-    const arrivalsWithRidership = [];
-    
-    // Process ridership data in smaller batches to avoid overwhelming the API
-    const batchSize = 10;
-    const maxWithRidership = Math.min(uniqueArrivals.length, 30);
-    
-    for (let i = 0; i < maxWithRidership; i += batchSize) {
-      const batch = uniqueArrivals.slice(i, i + batchSize);
-      const batchPromises = batch.map(arrival => 
-        getStationRidership(arrival.stationName, 'G').then(ridership => {
-          arrival.ridership = ridership;
-          return arrival;
-        }).catch(error => {
-          console.error(`Error getting ridership for ${arrival.stationName}:`, error);
-          arrival.ridership = { averageRidership: 0, dataPoints: 0, confidence: 'error' };
-          return arrival;
-        })
-      );
-      
-      try {
-        const batchResults = await Promise.all(batchPromises);
-        arrivalsWithRidership.push(...batchResults);
-      } catch (error) {
-        console.error('Error fetching ridership batch:', error);
-        arrivalsWithRidership.push(...batch);
-      }
-      
-      // Small delay between batches to be respectful to the API
-      if (i + batchSize < maxWithRidership) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-    }
-    
-    // Add remaining arrivals without ridership data
-    arrivalsWithRidership.push(...uniqueArrivals.slice(maxWithRidership));
-
-    res.json({
-      updated: new Date().toLocaleString(),
-      count: arrivalsWithRidership.length,
-      arrivals: arrivalsWithRidership
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to load or decode GTFS-realtime feed", details: String(err) });
-  }
-});
+// /api/g-arrivals is handled by the MTA_FEEDS forEach loop above
 
 app.listen(PORT, () => {
   console.log(`Server on http://localhost:${PORT}`);
