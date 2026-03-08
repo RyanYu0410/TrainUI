@@ -1,0 +1,11 @@
+# Large GTFS file (exceeds GitHub 100MB limit)
+gtfs_supplemented/stop_times.txt
+
+# Environment variables (API keys)
+.env
+
+# OS files
+.DS_Store
+
+# Dependencies
+node_modules/
