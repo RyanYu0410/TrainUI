@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horizontal Route Map – Visual Spec</title>
+    <title>Vertical Route Map - G Line</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -303,15 +303,14 @@
         /* ROUTE CANVAS */
         .route-canvas {
             min-width: 100%;
-            height: 100vh; /* Full viewport height */
-            padding: 0 calc(var(--baseline) * 6);
-            padding-top: 64px; /* Header height */
-            padding-bottom: 48px; /* Footer height */
+            height: 100vh;
+            padding: 64px 0 120px 0;
             display: flex;
             align-items: center;
-            justify-content: flex-start; /* Align to left */
-            overflow-x: auto; /* Allow horizontal scrolling */
-            overflow-y: hidden; /* No vertical scrolling */
+            justify-content: flex-start;
+            overflow-x: hidden;
+            overflow-y: auto;
+            flex-direction: column;
         }
 
         /* Hide scrollbar for route-canvas */
@@ -326,18 +325,21 @@
 
         .route-lane {
             position: relative;
-            height: var(--lane-height);
-            min-width: max-content;
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+            min-height: 100%;
+            padding-top: 40px;
+            padding-bottom: 120px;
         }
 
         /* SVG SPLINE */
         .spline-container {
             position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: var(--spline-width);
-            transform: translateY(-50%);
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 140px;
             overflow: visible;
             z-index: 2;
         }
@@ -370,7 +372,7 @@
         /* NODES */
         .node-container {
             position: absolute;
-            top: 50%;
+            left: 40px;
             transform: translate(-50%, -50%);
             z-index: 10;
         }
@@ -555,21 +557,18 @@
         }
 
         .connection-line.top {
-            background: linear-gradient(90deg, var(--route-color) 0%, var(--route-color-fade) 100%);
-            opacity: 0.7;
-            height: 3px;
+            width: 3px;
+            left: calc(40px - 4px);
         }
 
         .connection-line.bottom {
-            background: linear-gradient(90deg, var(--route-color-fade) 0%, var(--route-color) 100%);
-            opacity: 0.7;
-            height: 3px;
+            width: 3px;
+            left: calc(40px + 1px);
         }
 
         .connection-line.both {
-            background: var(--route-color);
-            opacity: 0.9;
-            height: 4px;
+            width: 6px;
+            left: calc(40px - 3px);
         }
 
         .connection-line.ellipsis {
@@ -593,18 +592,18 @@
             z-index: 15;
         }
 
-        .station-label.top {
-            bottom: calc(50% + var(--label-offset));
-            left: 50%;
-            transform-origin: bottom left;
-            transform: rotate(-25deg);
+        .station-label.right {
+            left: calc(50% + var(--label-offset));
+            top: 50%;
+            transform: translateY(-50%);
+            text-align: left;
         }
 
         .station-label.bottom {
-            top: calc(50% + var(--label-offset));
-            right: 50%;
-            transform-origin: top right;
-            transform: rotate(-25deg);
+            left: calc(50% + var(--label-offset));
+            top: 50%;
+            transform: translateY(-50%);
+            text-align: left;
         }
 
         .station-label.terminus {
@@ -1017,56 +1016,50 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            height: var(--lane-height);
+            width: 80px;
+            left: 0;
             z-index: 5;
         }
 
         .node-ellipsis {
-            width: 60px;
-            height: 24px;
+            width: 40px;
+            height: 18px;
             background: var(--surface);
             border: 1px solid var(--divider);
-            border-radius: 12px;
+            border-radius: 9px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 12px;
             color: var(--text-secondary);
             font-weight: 600;
-            letter-spacing: 2px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            letter-spacing: 1px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .ellipsis-label {
             position: absolute;
+            left: calc(50% + 16px);
             top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 14px;
+            transform: translateY(-50%);
+            font-size: 12px;
             font-weight: 500;
             color: var(--text-secondary);
             font-style: italic;
             background: var(--surface);
-            padding: 2px 8px;
+            padding: 1px 6px;
             border-radius: 4px;
             border: 1px solid var(--divider);
             white-space: nowrap;
         }
 
-        .ellipsis-label.top {
-            top: calc(50% - 30px);
-        }
-
-        .ellipsis-label.bottom {
-            top: calc(50% + 30px);
-        }
 
         /* Folded line blocks */
         .folded-line-block {
             position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            height: 4px;
+            left: 40px;
+            transform: translateX(-50%);
+            width: 4px;
             background: var(--route-color-fade);
             opacity: 1;
             z-index: 1;
@@ -1076,8 +1069,7 @@
         /* Train arrival animation - directional ripple effect */
         .train-icon {
             position: absolute;
-            top: 50%;
-            left: 0;
+            left: 40px;
             transform: translate(-50%, -50%);
             width: 16px;
             height: 16px;
@@ -1085,7 +1077,7 @@
             border: 2px solid #FFFFFF;
             border-radius: 50%;
             z-index: 100;
-            transition: left 1s linear;
+            transition: top 1s linear;
         }
 
         /* Dark mode - white ripples */
@@ -1097,7 +1089,7 @@
         /* Ripple elements - chevron arrow waves (left direction) */
         .train-icon::before,
         .train-icon::after {
-            content: '‹';
+            content: '∧';
             position: absolute;
             top: 50%;
             left: 50%;
@@ -1128,7 +1120,7 @@
 
         @keyframes chevronRipple1 {
             0% {
-                transform: translate(-50%, -50%) translateX(-10px) scale(0.6);
+                transform: translate(-50%, -50%) translateY(-10px) scale(0.6);
                 opacity: 0;
                 filter: blur(2px);
             }
@@ -1137,12 +1129,12 @@
                 filter: blur(1px);
             }
             60% {
-                transform: translate(-50%, -50%) translateX(-60px) scale(1.2);
+                transform: translate(-50%, -50%) translateY(-60px) scale(1.2);
                 opacity: 0.5;
                 filter: blur(2px);
             }
             100% {
-                transform: translate(-50%, -50%) translateX(-100px) scale(1.5);
+                transform: translate(-50%, -50%) translateY(-100px) scale(1.5);
                 opacity: 0;
                 filter: blur(3px);
             }
@@ -1150,7 +1142,7 @@
 
         @keyframes chevronRipple2 {
             0% {
-                transform: translate(-50%, -50%) translateX(-10px) scale(0.6);
+                transform: translate(-50%, -50%) translateY(-10px) scale(0.6);
                 opacity: 0;
                 filter: blur(2px);
             }
@@ -1159,12 +1151,12 @@
                 filter: blur(1px);
             }
             60% {
-                transform: translate(-50%, -50%) translateX(-60px) scale(1.2);
+                transform: translate(-50%, -50%) translateY(-60px) scale(1.2);
                 opacity: 0.5;
                 filter: blur(2px);
             }
             100% {
-                transform: translate(-50%, -50%) translateX(-100px) scale(1.5);
+                transform: translate(-50%, -50%) translateY(-100px) scale(1.5);
                 opacity: 0;
                 filter: blur(3px);
             }
@@ -1306,7 +1298,8 @@
         /* RESPONSIVE */
         @media (max-width: 1024px) {
             .route-canvas {
-                padding: 64px calc(var(--baseline) * 3) 48px;
+                padding-top: 56px;
+                padding-bottom: 100px;
             }
             :root {
                 --node-spacing: 120px;
@@ -1315,7 +1308,7 @@
 
         @media (max-width: 768px) {
             :root {
-                --node-spacing: 90px;
+                --node-spacing: 100px;
                 --label-offset: 14px;
                 --label-size: 13px;
             }
@@ -1327,37 +1320,36 @@
             .route-badge { width: 28px; height: 28px; font-size: 16px; }
             .destination { font-size: 14px; }
             .current-train-chip { font-size: 11px; padding: 2px 8px; }
-            .route-canvas { padding-top: 52px; padding-bottom: 42px; }
-            .station-label { max-width: 140px; }
+            .route-canvas { padding-top: 52px; }
+            .station-label { max-width: 160px; }
         }
 
         @media (max-width: 480px) {
             :root {
-                --node-spacing: 72px;
                 --label-size: 12px;
-                --label-offset: 10px;
+                --label-offset: 12px;
             }
             .header {
                 height: 46px;
                 padding: 0 8px;
                 gap: 6px;
+                flex-wrap: nowrap;
                 overflow-x: auto;
             }
             .route-badge { width: 24px; height: 24px; font-size: 14px; }
             .destination { font-size: 13px; white-space: nowrap; }
             .current-train-chip { display: none; }
             .toggle-btn { font-size: 12px; padding: 3px 8px; }
-            .route-canvas { padding-top: 46px; padding-bottom: 36px; }
-            .station-label { max-width: 120px; font-size: 11px; }
-            .station-label.terminus { font-size: 13px; }
+            .route-canvas { padding-top: 46px; padding-bottom: 80px; }
+            .station-label { max-width: 140px; font-size: 12px; }
+            .station-label.terminus { font-size: 14px; }
             .status-strip { font-size: 11px; padding: 6px 12px; gap: 8px; }
         }
 
         @media (max-width: 360px) {
-            :root { --node-spacing: 60px; }
             .destination { font-size: 12px; }
             .toggle-btn { font-size: 11px; padding: 2px 6px; }
-            .station-label { max-width: 100px; font-size: 10px; }
+            .station-label { max-width: 120px; font-size: 11px; }
         }
 
         /* FOCUS RINGS */
@@ -1371,9 +1363,9 @@
 </head>
 <body class="dark">
     <nav class="page-nav" aria-label="Page navigation">
-        <a href="nav.html" class="page-nav-prev">Prev</a>
+        <a href="Gtrain-roadmap.html" class="page-nav-prev">Prev</a>
         <span class="page-nav-title">Is the station crowded?</span>
-        <a href="Gtrain-roadmap-vertical.html" class="page-nav-next">Next</a>
+        <a href="Ctrain-test-roadmap.html" class="page-nav-next">Next</a>
     </nav>
     <!-- STICKY HEADER -->
     <header class="header">
@@ -1398,13 +1390,13 @@
     <div class="route-canvas">
         <div class="route-lane" id="route-lane">
             <!-- SVG Spline will be rendered here -->
-            <svg class="spline-svg" id="spline-svg" style="position: absolute; top: 50%; transform: translateY(-50%); left: 0; width: 100%; height: 60px; overflow: visible;">
+            <svg class="spline-svg" id="spline-svg" style="position: absolute; left: 10px; top: 0; width: 140px; height: 100%; overflow: visible;">
                 <defs>
-                    <linearGradient id="grad-left" x1="100%" y1="0%" x2="0%" y2="0%">
+                    <linearGradient id="grad-left" x1="0%" y1="100%" x2="0%" y2="0%">
                         <stop offset="0%" stop-color="var(--route-color-strong)" stop-opacity="0.3" />
                         <stop offset="100%" stop-color="var(--route-color-strong)" stop-opacity="0" />
                     </linearGradient>
-                    <linearGradient id="grad-right" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <linearGradient id="grad-right" x1="0%" y1="0%" x2="0%" y2="100%">
                         <stop offset="0%" stop-color="var(--route-color-strong)" stop-opacity="0.3" />
                         <stop offset="100%" stop-color="var(--route-color-strong)" stop-opacity="0" />
                     </linearGradient>
@@ -1920,14 +1912,26 @@
 
         // Render Stations
         const routeLane = document.getElementById('route-lane');
-        const nodeSpacing = 160; // px
-        let xPosition = 80; // Start padding
+        const nodeSpacing = 110; // px (mobile compact vertical spacing)
+        let yPosition = 80; // Start padding
         const nodePositions = [];
+        const curveAmplitude = 50;
+        const laneCenterX = 70;
+
+        function laneXByOrder(order) {
+            const offsets = [-50, -18, 18, 50, 18, -18];
+            return laneCenterX + offsets[order % offsets.length];
+        }
+
+        function laneXByIndex(index) {
+            return laneXByOrder(index);
+        }
 
         gLineStations.forEach((station, index) => {
             const nodeContainer = document.createElement('div');
             nodeContainer.className = 'node-container';
-            nodeContainer.style.left = `${xPosition}px`;
+            nodeContainer.style.top = `${yPosition}px`;
+            nodeContainer.style.left = `${10 + laneXByIndex(index)}px`;
             nodeContainer.tabIndex = 0;
 
             if (station.type === 'ellipsis') {
@@ -1945,7 +1949,7 @@
 
                 // Ellipsis count label
                 const label = document.createElement('div');
-                label.className = `station-label ${station.position}`;
+                label.className = `station-label right`;
                 label.innerHTML = `<span class="ellipsis-count">${station.count}</span>`;
                 nodeContainer.appendChild(label);
 
@@ -2021,7 +2025,7 @@
 
                 // Station Label
                 const label = document.createElement('div');
-                label.className = `station-label ${station.position}`;
+                label.className = `station-label right`;
                 if (station.type === 'terminus') label.classList.add('terminus');
                 if (station.state === 'skipped') label.classList.add('skipped');
 
@@ -2048,8 +2052,8 @@
             }
 
             routeLane.appendChild(nodeContainer);
-            nodePositions.push(xPosition);
-            xPosition += nodeSpacing;
+            nodePositions.push({ y: yPosition, x: laneXByIndex(index) });
+            yPosition += nodeSpacing;
         });
 
         // Add connecting lines between stations
@@ -2058,88 +2062,13 @@
             const nextStation = gLineStations[i + 1];
             const currentPos = nodePositions[i];
             const nextPos = nodePositions[i + 1];
-            const lineWidth = nextPos - currentPos;
-
-            // Create connecting line
-            const connectionLine = document.createElement('div');
-            connectionLine.className = 'connection-line';
-            connectionLine.style.left = `${currentPos}px`;
-            connectionLine.style.width = `${lineWidth}px`;
-            connectionLine.dataset.index = String(i);
-
-            // Determine line type based on station positions
-            if (currentStation.type === 'ellipsis' || nextStation.type === 'ellipsis') {
-                connectionLine.classList.add('ellipsis');
-            } else if (currentStation.position === 'top' && nextStation.position === 'top') {
-                connectionLine.classList.add('top');
-            } else if (currentStation.position === 'bottom' && nextStation.position === 'bottom') {
-                connectionLine.classList.add('bottom');
-            } else {
-                connectionLine.classList.add('both');
             }
 
-            routeLane.appendChild(connectionLine);
-        }
-
         // Adjust route lane width
-        routeLane.style.width = `${xPosition + 80}px`;
+        routeLane.style.height = `${yPosition + 120}px`;
+        // Draw curved vertical spline based on current station positions
+        redrawSpline();
 
-        // Draw spline programmatically with fades, near-node ramps, arrows, and dashed skipped segment
-        const splineSvg = document.getElementById('spline-svg');
-        const baselineGroup = splineSvg.querySelector('#spline-baseline');
-        const overlaysGroup = splineSvg.querySelector('#spline-overlays');
-        const arrowsGroup = splineSvg.querySelector('#spline-arrows');
-        const centerY = 30; // SVG center line
-
-        // Helper to create a line
-        function makeLine(x1, x2, opacity, dashed = false) {
-            const ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            ln.setAttribute('x1', x1);
-            ln.setAttribute('y1', centerY);
-            ln.setAttribute('x2', x2);
-            ln.setAttribute('y2', centerY);
-            ln.setAttribute('stroke', getComputedStyle(document.documentElement).getPropertyValue('--route-color-strong') || 'rgba(108,190,69,0.9)');
-            ln.setAttribute('stroke-width', 4);
-            ln.setAttribute('opacity', opacity);
-            ln.setAttribute('filter', 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))');
-            if (dashed) ln.setAttribute('stroke-dasharray', '8 6');
-            return ln;
-        }
-
-        // Baseline segments between consecutive nodes
-        for (let i = 1; i < nodePositions.length; i++) {
-            const x1 = nodePositions[i - 1];
-            const x2 = nodePositions[i];
-            const prevIsEllipsis = gLineStations[i - 1]?.type === 'ellipsis';
-            const nextIsEllipsis = gLineStations[i]?.type === 'ellipsis';
-            const op = (prevIsEllipsis && nextIsEllipsis) ? 0.25 : 0.5; // 20–30% between ellipsis clusters, else 40–50%
-            baselineGroup.appendChild(makeLine(x1, x2, op));
-        }
-
-        // Near-node bright ramps ±10 px
-        nodePositions.forEach(x => {
-            overlaysGroup.appendChild(makeLine(x - 10, x + 10, 1));
-        });
-
-        // Terminus fades beyond ends (48–64 px)
-        const fadeExtent = 60; // px
-        const leftFade = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        leftFade.setAttribute('x', String(nodePositions[0] - fadeExtent));
-        leftFade.setAttribute('y', String(centerY - 1.5));
-        leftFade.setAttribute('width', String(fadeExtent));
-        leftFade.setAttribute('height', '3');
-        leftFade.setAttribute('fill', 'url(#grad-left)');
-        overlaysGroup.appendChild(leftFade);
-
-        const rightFade = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rightFade.setAttribute('x', String(nodePositions[nodePositions.length - 1]));
-        rightFade.setAttribute('y', String(centerY - 1.5));
-        rightFade.setAttribute('width', String(fadeExtent));
-        rightFade.setAttribute('height', '3');
-        rightFade.setAttribute('fill', 'url(#grad-right)');
-        overlaysGroup.appendChild(rightFade);
-
-        // Direction arrows removed - no longer needed
 
         // Initialize real-time data and start auto-refresh
         fetchRealtimeData();
@@ -2233,180 +2162,113 @@
 
         // Redraw spline based on visible stations
         function redrawSpline() {
-            console.log('Redrawing spline...');
             const splineSvg = document.getElementById('spline-svg');
             const baselineGroup = splineSvg.querySelector('#spline-baseline');
             const overlaysGroup = splineSvg.querySelector('#spline-overlays');
             const arrowsGroup = splineSvg.querySelector('#spline-arrows');
-            const centerY = 30;
-            
-            // Clear existing spline elements
+
             baselineGroup.innerHTML = '';
             overlaysGroup.innerHTML = '';
             arrowsGroup.innerHTML = '';
-            
-            // Helper to create a line
-            function makeLine(x1, x2, opacity, dashed = false) {
-                const ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                ln.setAttribute('x1', x1);
-                ln.setAttribute('y1', centerY);
-                ln.setAttribute('x2', x2);
-                ln.setAttribute('y2', centerY);
-                ln.setAttribute('stroke', getComputedStyle(document.documentElement).getPropertyValue('--route-color-strong') || 'rgba(108,190,69,0.9)');
-                ln.setAttribute('stroke-width', 4);
-                ln.setAttribute('opacity', opacity);
-                ln.setAttribute('filter', 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))');
-                if (dashed) ln.setAttribute('stroke-dasharray', '8 6');
-                return ln;
-            }
-            
-            // Calculate new positions for visible stations with adjusted spacing
-            const visiblePositions = [];
-            const visibleIndices = [];
+
             const stationContainers = document.querySelectorAll('.node-container');
-            
-            // First pass: collect visible station indices
+            const visibleIndices = [];
             stationContainers.forEach((container, index) => {
-                if (!container.classList.contains('station-folded')) {
-                    visibleIndices.push(index);
-                }
+                if (!container.classList.contains('station-folded')) visibleIndices.push(index);
             });
-            
-            // Second pass: calculate positions with adjusted spacing
-            let currentX = 80; // Start position
+
+            const visiblePoints = [];
+            let currentY = 80;
             for (let i = 0; i < visibleIndices.length; i++) {
-                visiblePositions.push(currentX);
-                console.log(`Visible station ${visibleIndices[i]}: repositioned to x=${currentX}`);
-                
-                // Calculate spacing to next station
+                const idx = visibleIndices[i];
+                const x = laneXByOrder(i);
+                visiblePoints.push({ x, y: currentY, index: idx });
+
+                const container = stationContainers[idx];
+                container.style.top = `${currentY}px`;
+                container.style.left = `${10 + x}px`;
+
+                const label = container.querySelector('.station-label');
+                if (label) {
+                    label.classList.remove('top', 'bottom');
+                    label.classList.add('right');
+                }
+
                 if (i < visibleIndices.length - 1) {
                     const gap = visibleIndices[i + 1] - visibleIndices[i];
-                    if (gap === 1) {
-                        // Consecutive stations: 160px spacing
-                        currentX += 160;
-                    } else {
-                        // Gap with folded stations: base 160px + (gap * 5px)
-                        const extraSpacing = gap * 5;
-                        currentX += 160 + extraSpacing;
-                    }
+                    currentY += gap === 1 ? nodeSpacing : (nodeSpacing + gap * 6);
                 }
             }
-            
-            console.log('Visible positions:', visiblePositions);
-            console.log('Visible indices:', visibleIndices);
-            
-            // Reposition visible station containers and adjust top/bottom positions
-            stationContainers.forEach((container, index) => {
-                if (!container.classList.contains('station-folded')) {
-                    const visibleIndex = visibleIndices.indexOf(index);
-                    if (visibleIndex !== -1) {
-                        container.style.left = `${visiblePositions[visibleIndex]}px`;
-                        
-                        // Adjust top/bottom position for alternating pattern
-                        const label = container.querySelector('.station-label');
-                        if (label) {
-                            // Remove existing position classes
-                            label.classList.remove('top', 'bottom');
-                            // Add new position based on visible index (alternating)
-                            const newPosition = visibleIndex % 2 === 0 ? 'top' : 'bottom';
-                            label.classList.add(newPosition);
-                            console.log(`Station ${index} (visible ${visibleIndex}): position=${newPosition}`);
-                        }
-                    }
-                }
-            });
-            
-            // Remove all old connection lines
+
             const oldConnectionLines = document.querySelectorAll('.connection-line');
             oldConnectionLines.forEach(line => line.remove());
-            
-            // Create new connection lines for consecutive visible stations
-            const routeLane = document.querySelector('.route-lane');
-            for (let i = 1; i < visiblePositions.length; i++) {
-                const prevIndex = visibleIndices[i - 1];
-                const currIndex = visibleIndices[i];
-                const gap = currIndex - prevIndex;
-                
-                // Only create connection line if stations are consecutive
-                if (gap === 1) {
-                    const currentPos = visiblePositions[i - 1];
-                    const nextPos = visiblePositions[i];
-                    const lineWidth = nextPos - currentPos;
-                    
-                    const connectionLine = document.createElement('div');
-                    connectionLine.className = 'connection-line';
-                    connectionLine.style.left = `${currentPos}px`;
-                    connectionLine.style.width = `${lineWidth}px`;
-                    connectionLine.dataset.index = String(prevIndex);
-                    
-                    // Determine line type based on visible index positions (alternating)
-                    const prevVisibleIndex = i - 1;
-                    const currVisibleIndex = i;
-                    const prevPosition = prevVisibleIndex % 2 === 0 ? 'top' : 'bottom';
-                    const currPosition = currVisibleIndex % 2 === 0 ? 'top' : 'bottom';
-                    
-                    if (prevPosition === 'top' && currPosition === 'top') {
-                        connectionLine.classList.add('top');
-                    } else if (prevPosition === 'bottom' && currPosition === 'bottom') {
-                        connectionLine.classList.add('bottom');
-                    } else {
-                        connectionLine.classList.add('both');
-                    }
-                    
-                    routeLane.appendChild(connectionLine);
-                    console.log(`Created connection line: station ${prevIndex} to ${currIndex} (x=${currentPos}, width=${lineWidth}, ${prevPosition}→${currPosition})`);
-                }
+
+            // Connection segments are drawn only as SVG path (no div.connection-line)
+
+            function makeCurveSegment(p1, p2, opacity, dashed = false) {
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                const midY = (p1.y + p2.y) / 2;
+                const d = `M ${p1.x} ${p1.y} C ${p1.x} ${midY}, ${p2.x} ${midY}, ${p2.x} ${p2.y}`;
+                path.setAttribute('d', d);
+                path.setAttribute('fill', 'none');
+                path.setAttribute('stroke', getComputedStyle(document.documentElement).getPropertyValue('--route-color-strong') || 'rgba(108,190,69,0.9)');
+                path.setAttribute('stroke-width', '4');
+                path.setAttribute('opacity', String(opacity));
+                path.setAttribute('filter', 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))');
+                if (dashed) path.setAttribute('stroke-dasharray', '8 6');
+                return path;
             }
-            
-            // Draw baseline segments between visible nodes
-            for (let i = 1; i < visiblePositions.length; i++) {
-                const prevIndex = visibleIndices[i - 1];
-                const currIndex = visibleIndices[i];
-                const gap = currIndex - prevIndex;
-                
-                // Only draw spline if stations are consecutive
+
+            for (let i = 1; i < visiblePoints.length; i++) {
+                const prevIdx = visiblePoints[i - 1].index;
+                const currIdx = visiblePoints[i].index;
+                const gap = currIdx - prevIdx;
                 if (gap === 1) {
-                    const x1 = visiblePositions[i - 1];
-                    const x2 = visiblePositions[i];
-                    baselineGroup.appendChild(makeLine(x1, x2, 0.5));
-                    console.log(`Drawing spline: station ${prevIndex} to ${currIndex} (x=${x1} to ${x2}, spacing=160px)`);
+                    baselineGroup.appendChild(makeCurveSegment(visiblePoints[i - 1], visiblePoints[i], 0.55));
                 } else {
-                    console.log(`Skipping spline: station ${prevIndex} to ${currIndex} (gap=${gap} stations, folded-line-block will handle with 200px spacing)`);
+                    baselineGroup.appendChild(makeCurveSegment(visiblePoints[i - 1], visiblePoints[i], 0.3, true));
                 }
             }
-            
-            // Near-node bright ramps ±10 px for visible nodes
-            visiblePositions.forEach(x => {
-                overlaysGroup.appendChild(makeLine(x - 10, x + 10, 1));
+
+            visiblePoints.forEach((p) => {
+                const p1 = { x: p.x, y: p.y - 8 };
+                const p2 = { x: p.x, y: p.y + 8 };
+                overlaysGroup.appendChild(makeCurveSegment(p1, p2, 1));
             });
-            
-            // Terminus fades beyond ends
-            if (visiblePositions.length > 0) {
+
+            // Size SVG to match actual content height (no viewBox scaling)
+            const lastY = visiblePoints.length ? visiblePoints[visiblePoints.length - 1].y : 80;
+            splineSvg.style.height = `${lastY + 120}px`;
+            splineSvg.removeAttribute('viewBox');
+            splineSvg.removeAttribute('preserveAspectRatio');
+
+            if (visiblePoints.length > 0) {
                 const fadeExtent = 60;
-                
-                const leftFade = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                leftFade.setAttribute('x', String(visiblePositions[0] - fadeExtent));
-                leftFade.setAttribute('y', String(centerY - 1.5));
-                leftFade.setAttribute('width', String(fadeExtent));
-                leftFade.setAttribute('height', '3');
-                leftFade.setAttribute('fill', 'url(#grad-left)');
-                overlaysGroup.appendChild(leftFade);
-                
-                const rightFade = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                rightFade.setAttribute('x', String(visiblePositions[visiblePositions.length - 1]));
-                rightFade.setAttribute('y', String(centerY - 1.5));
-                rightFade.setAttribute('width', String(fadeExtent));
-                rightFade.setAttribute('height', '3');
-                rightFade.setAttribute('fill', 'url(#grad-right)');
-                overlaysGroup.appendChild(rightFade);
-                
-                // Direction arrows removed - replaced by train arrival animation
+                const start = visiblePoints[0];
+                const end = visiblePoints[visiblePoints.length - 1];
+
+                const topFade = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                topFade.setAttribute('x', String(start.x - 1.5));
+                topFade.setAttribute('y', String(start.y - fadeExtent));
+                topFade.setAttribute('width', '3');
+                topFade.setAttribute('height', String(fadeExtent));
+                topFade.setAttribute('fill', 'url(#grad-left)');
+                overlaysGroup.appendChild(topFade);
+
+                const bottomFade = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                bottomFade.setAttribute('x', String(end.x - 1.5));
+                bottomFade.setAttribute('y', String(end.y));
+                bottomFade.setAttribute('width', '3');
+                bottomFade.setAttribute('height', String(fadeExtent));
+                bottomFade.setAttribute('fill', 'url(#grad-right)');
+                overlaysGroup.appendChild(bottomFade);
             }
-            
-            console.log('Spline redrawn');
-            
-            // Return positions and indices for ellipsis/folded-line-block creation
-            return { visiblePositions, visibleIndices };
+
+            return {
+                visiblePositions: visiblePoints.map(p => p.y),
+                visibleXPositions: visiblePoints.map(p => p.x),
+                visibleIndices
+            };
         }
 
         // Update station folding with ellipsis groups
@@ -2421,14 +2283,15 @@
                 stationContainers.forEach((container, index) => {
                     container.classList.remove('station-folded');
                     // Reset to original position
-                    container.style.left = `${80 + (index * 160)}px`;
+                    container.style.top = `${80 + (index * nodeSpacing)}px`;
+                    container.style.left = `${10 + laneXByIndex(index)}px`;
                     
                     // Restore original top/bottom position
                     const station = gLineStations[index];
                     const label = container.querySelector('.station-label');
                     if (label && station) {
                         label.classList.remove('top', 'bottom');
-                        label.classList.add(station.position);
+                        label.classList.add('right');
                     }
                 });
                 
@@ -2446,33 +2309,7 @@
                 const oldConnectionLines = document.querySelectorAll('.connection-line');
                 oldConnectionLines.forEach(line => line.remove());
                 
-                // Recreate connection lines at original positions
-                const routeLane = document.querySelector('.route-lane');
-                for (let i = 0; i < gLineStations.length - 1; i++) {
-                    const currentPos = 80 + (i * 160);
-                    const nextPos = 80 + ((i + 1) * 160);
-                    const lineWidth = nextPos - currentPos;
-                    
-                    const connectionLine = document.createElement('div');
-                    connectionLine.className = 'connection-line';
-                    connectionLine.style.left = `${currentPos}px`;
-                    connectionLine.style.width = `${lineWidth}px`;
-                    connectionLine.dataset.index = String(i);
-                    
-                    const currentStation = gLineStations[i];
-                    const nextStation = gLineStations[i + 1];
-                    
-                    if (currentStation.position === 'top' && nextStation.position === 'top') {
-                        connectionLine.classList.add('top');
-                    } else if (currentStation.position === 'bottom' && nextStation.position === 'bottom') {
-                        connectionLine.classList.add('bottom');
-                    } else {
-                        connectionLine.classList.add('both');
-                    }
-                    
-                    routeLane.appendChild(connectionLine);
-                }
-                console.log('Recreated', gLineStations.length - 1, 'connection lines');
+                // Connection segments are drawn only in SVG (no div.connection-line)
                 
                 // Redraw spline with all stations
                 redrawSpline();
@@ -2496,12 +2333,6 @@
             const existingFoldedLines = document.querySelectorAll('.folded-line-block');
             existingFoldedLines.forEach(line => line.remove());
             
-            // Show all connection lines initially (we'll hide specific ones later)
-            const allConnectionLines = document.querySelectorAll('.connection-line');
-            allConnectionLines.forEach(line => {
-                line.style.display = 'block';
-            });
-            
             let totalFolded = 0;
             
             stationContainers.forEach((container, index) => {
@@ -2524,7 +2355,7 @@
             console.log('Total stations folded:', totalFolded);
             
             // Redraw spline with only visible stations and get new positions
-            const { visiblePositions, visibleIndices } = redrawSpline();
+            const { visiblePositions, visibleXPositions, visibleIndices } = redrawSpline();
             
             // Now create ellipsis groups and folded line blocks with correct positions
             let ellipsisStartIndex = -1;
@@ -2537,13 +2368,11 @@
                 if (nextIndex !== undefined) {
                     const gap = nextIndex - currentIndex;
                     if (gap > 1) {
-                        // There's a folded range between current and next
-                        const prevStationNewX = visiblePositions[i];
-                        const nextStationNewX = visiblePositions[i + 1];
+                        const prevStationNewY = visiblePositions[i];
+                        const nextStationNewY = visiblePositions[i + 1];
+                        const midX = 10 + (visibleXPositions[i] + visibleXPositions[i + 1]) / 2;
                         const foldedStations = gap - 1;
-                        console.log(`Creating folded elements between station ${currentIndex} and ${nextIndex}`);
-                        createEllipsisGroup(currentIndex + 1, foldedStations, routeLane, prevStationNewX, nextStationNewX);
-                        createFoldedLineBlock(currentIndex + 1, foldedStations, routeLane, prevStationNewX, nextStationNewX);
+                        createEllipsisGroup(currentIndex + 1, foldedStations, routeLane, prevStationNewY, nextStationNewY, midX);
                     }
                 }
             }
@@ -2552,17 +2381,14 @@
         }
 
         // Create ellipsis group element
-        function createEllipsisGroup(startIndex, count, routeLane, prevStationNewX, nextStationNewX) {
-            console.log(`createEllipsisGroup: startIndex=${startIndex}, count=${count}, prevStationNewX=${prevStationNewX}, nextStationNewX=${nextStationNewX}`);
+        function createEllipsisGroup(startIndex, count, routeLane, prevStationNewY, nextStationNewY, midX) {
             const ellipsisGroup = document.createElement('div');
             ellipsisGroup.className = 'ellipsis-group';
             
-            // Position at the center of the folded-line-block
-            // Center is at the midpoint between prev and next stations
-            const xPosition = (prevStationNewX + nextStationNewX) / 2;
-            ellipsisGroup.style.left = `${xPosition}px`;
-            ellipsisGroup.style.transform = 'translateX(-50%)';
-            console.log(`Ellipsis group positioned at x=${xPosition}px (center of folded-line-block)`);
+            const yPosition = (prevStationNewY + nextStationNewY) / 2;
+            ellipsisGroup.style.top = `${yPosition}px`;
+            ellipsisGroup.style.left = `${midX}px`;
+            ellipsisGroup.style.transform = 'translate(-50%, -50%)';
             
             // Create ellipsis node
             const ellipsisNode = document.createElement('div');
@@ -2582,26 +2408,15 @@
         }
 
         // Create folded line block element
-        function createFoldedLineBlock(startIndex, count, routeLane, prevStationNewX, nextStationNewX) {
-            // The folded-line-block width is calculated based on the actual distance
-            // between the previous and next visible stations
+        function createFoldedLineBlock(startIndex, count, routeLane, prevStationNewY, nextStationNewY, midX) {
+            const lineHeight = nextStationNewY - prevStationNewY;
+            const startPosition = prevStationNewY;
             
-            // Width is the actual distance between stations
-            const lineWidth = nextStationNewX - prevStationNewX;
-            
-            // The line starts at the previous station's new position
-            const startPosition = prevStationNewX;
-            
-            console.log(`createFoldedLineBlock: folding ${count} stations (indices ${startIndex} to ${startIndex + count - 1})`);
-            console.log(`  Previous visible station at new x=${prevStationNewX}px`);
-            console.log(`  Next visible station at new x=${nextStationNewX}px`);
-            console.log(`  Line: startPos=${startPosition}px, width=${lineWidth}px (160px + ${count} * 5px = ${160 + count * 5}px)`);
-            
-            // Create the folded line block
             const foldedLineBlock = document.createElement('div');
             foldedLineBlock.className = 'folded-line-block';
-            foldedLineBlock.style.left = `${startPosition}px`;
-            foldedLineBlock.style.width = `${lineWidth}px`;
+            foldedLineBlock.style.top = `${startPosition}px`;
+            foldedLineBlock.style.left = `${midX}px`;
+            foldedLineBlock.style.height = `${lineHeight}px`;
             
             // Insert the folded line block into the route lane
             routeLane.appendChild(foldedLineBlock);
@@ -2671,7 +2486,8 @@
                         visibleStations.push({
                             index: index,
                             name: station.name,
-                            x: parseInt(container.style.left) || (80 + index * 160)
+                            y: parseInt(container.style.top) || (80 + index * nodeSpacing),
+                            x: parseInt(container.style.left) || (10 + laneXByIndex(index))
                         });
                     }
                 }
@@ -2708,6 +2524,7 @@
                 // Calculate train position (interpolate between stations based on time)
                 // Assume 2 minutes between stations, interpolate position
                 const progress = Math.max(0, Math.min(1, (2 - minutesAway) / 2));
+                const trainY = currentVisible.y + (nextVisible.y - currentVisible.y) * progress;
                 const trainX = currentVisible.x + (nextVisible.x - currentVisible.x) * progress;
 
                 // Create or update train icon
@@ -2716,6 +2533,7 @@
                     const trainIcon = document.createElement('div');
                     trainIcon.className = 'train-icon';
                     trainIcon.dataset.trainId = trainId;
+                    trainIcon.style.top = `${trainY}px`;
                     trainIcon.style.left = `${trainX}px`;
                     routeLane.appendChild(trainIcon);
 
@@ -2727,6 +2545,7 @@
                     trainAnimations.set(trainId, trainData);
                 } else {
                     // Update position smoothly
+                    trainData.element.style.top = `${trainY}px`;
                     trainData.element.style.left = `${trainX}px`;
                     trainData.currentStationIndex = currentStationIndex;
                     trainData.targetStationIndex = nextStationIndex;
@@ -2773,7 +2592,7 @@
                     // Let them complete their animations
                 }
 
-                console.log(`Train ${trainId}: at station ${currentStationIndex}, ${minutesAway} min to ${nextStationIndex}, x=${trainX}`);
+                console.log(`Train ${trainId}: at station ${currentStationIndex}, ${minutesAway} min to ${nextStationIndex}, x=${trainY}`);
             });
 
             // Remove trains that are no longer in the data

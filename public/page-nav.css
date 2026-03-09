@@ -29,6 +29,16 @@
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
 }
+.page-nav-title {
+  color: #eaf0f6;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
 .page-nav a.page-nav-prev::before { content: "‹"; font-size: 1.4em; line-height: 1; }
 .page-nav a.page-nav-next::after { content: "›"; font-size: 1.4em; line-height: 1; }
 .page-nav a[href="#"] {

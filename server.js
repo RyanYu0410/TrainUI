@@ -50,6 +50,10 @@ app.get("/Gtrain-roadmap", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "Gtrain-roadmap.html"));
 });
 
+app.get("/Gtrain-roadmap-vertical", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "Gtrain-roadmap-vertical.html"));
+});
+
 // Route for chart page (formerly index)
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "chart.html"));
